@@ -5,27 +5,69 @@ import { Badge } from '@/components/ui/badge';
 import { Trophy, Crown, Gift, Clock, Users, Star } from 'lucide-react';
 import islamicHeroBg from '@/assets/islamic-hero-bg.jpg';
 import prayerBeads from '@/assets/prayer-beads.jpg';
-import rewardPattern from '@/assets/reward-pattern.jpg';
+
+// Static data store to simulate database
+const staticData = {
+  user: null as any,
+  todayCount: 47,
+  totalCount: 1234,
+  sessionCount: 0,
+  monthlyLeaders: [
+    { rank: 1, name: 'محمد حسن', points: 2847, prize: '۵۰۰۰ روپے نقد' },
+    { rank: 2, name: 'فاطمہ خان', points: 2156, prize: 'قرآن پاک' },
+    { rank: 3, name: 'علی احمد', points: 1923, prize: 'تسبیح + کاؤنٹر' }
+  ],
+  todayLeaders: [
+    { rank: 1, name: 'عائشہ صدیقی', count: 156 },
+    { rank: 2, name: 'عمر فاروق', count: 134 },
+    { rank: 3, name: 'خدیجہ علی', count: 121 }
+  ]
+};
 
 const Index = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [todayCount, setTodayCount] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
-  const [sessionCount, setSessionCount] = useState(0);
+  const [todayCount, setTodayCount] = useState(staticData.todayCount);
+  const [totalCount, setTotalCount] = useState(staticData.totalCount);
+  const [sessionCount, setSessionCount] = useState(staticData.sessionCount);
   const [isCooldown, setIsCooldown] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
 
-  // Mock user for demo
-  const user = isLoggedIn ? { name: 'احمد علی', email: 'ahmed@example.com' } : null;
+  // Check login status from localStorage
+  useEffect(() => {
+    const savedUser = localStorage.getItem('durood_user');
+    if (savedUser) {
+      const user = JSON.parse(savedUser);
+      setIsLoggedIn(true);
+      staticData.user = user;
+    }
+  }, []);
 
   const handlePress = () => {
     if (isCooldown || !isLoggedIn) return;
     
     setIsPressed(true);
     setIsCooldown(true);
-    setTodayCount(prev => prev + 1);
-    setTotalCount(prev => prev + 1);
-    setSessionCount(prev => prev + 1);
+    
+    // Update counts
+    const newTodayCount = todayCount + 1;
+    const newTotalCount = totalCount + 1;
+    const newSessionCount = sessionCount + 1;
+    
+    setTodayCount(newTodayCount);
+    setTotalCount(newTotalCount);
+    setSessionCount(newSessionCount);
+    
+    // Update static data
+    staticData.todayCount = newTodayCount;
+    staticData.totalCount = newTotalCount;
+    staticData.sessionCount = newSessionCount;
+    
+    // Save to localStorage
+    localStorage.setItem('durood_counts', JSON.stringify({
+      todayCount: newTodayCount,
+      totalCount: newTotalCount,
+      sessionCount: newSessionCount
+    }));
     
     // Reset visual feedback
     setTimeout(() => setIsPressed(false), 200);
@@ -35,31 +77,30 @@ const Index = () => {
   };
 
   const handleLogin = () => {
+    // Simulate login
+    const user = { name: 'احمد علی', email: 'ahmed@example.com' };
     setIsLoggedIn(true);
-    // Simulate existing counts for demo
-    setTodayCount(47);
-    setTotalCount(1234);
+    staticData.user = user;
+    localStorage.setItem('durood_user', JSON.stringify(user));
+    
+    // Load saved counts
+    const savedCounts = localStorage.getItem('durood_counts');
+    if (savedCounts) {
+      const counts = JSON.parse(savedCounts);
+      setTodayCount(counts.todayCount || staticData.todayCount);
+      setTotalCount(counts.totalCount || staticData.totalCount);
+      setSessionCount(counts.sessionCount || staticData.sessionCount);
+    }
   };
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    setTodayCount(0);
-    setTotalCount(0);
+    staticData.user = null;
+    localStorage.removeItem('durood_user');
+    // Reset session count but keep today and total
     setSessionCount(0);
+    staticData.sessionCount = 0;
   };
-
-  // Mock leaderboard data
-  const monthlyLeaders = [
-    { rank: 1, name: 'محمد حسن', points: 2847, prize: '۵۰۰۰ روپے نقد' },
-    { rank: 2, name: 'فاطمہ خان', points: 2156, prize: 'قرآن پاک' },
-    { rank: 3, name: 'علی احمد', points: 1923, prize: 'تسبیح + کاؤنٹر' }
-  ];
-
-  const todayLeaders = [
-    { rank: 1, name: 'عائشہ صدیقی', count: 156 },
-    { rank: 2, name: 'عمر فاروق', count: 134 },
-    { rank: 3, name: 'خدیجہ علی', count: 121 }
-  ];
 
   if (!isLoggedIn) {
     return (
@@ -105,7 +146,7 @@ const Index = () => {
                   لاگ اِن کریں
                 </Button>
                 <p className="text-xs text-center text-muted-foreground ltr">
-                  Demo mode - Click to start
+                  Demo mode - Click to start with static data
                 </p>
               </CardContent>
             </Card>
@@ -126,7 +167,7 @@ const Index = () => {
             </div>
             <div>
               <h1 className="font-bold text-primary arabic">درود ریوارڈز</h1>
-              <p className="text-sm text-muted-foreground arabic">{user?.name}</p>
+              <p className="text-sm text-muted-foreground arabic">{staticData.user?.name}</p>
             </div>
           </div>
           <Button 
@@ -276,7 +317,7 @@ const Index = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {monthlyLeaders.map((leader) => (
+                {staticData.monthlyLeaders.map((leader) => (
                   <div key={leader.rank} className={`leaderboard-row rank-${leader.rank}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 space-x-reverse">
@@ -310,7 +351,7 @@ const Index = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {todayLeaders.map((leader) => (
+                {staticData.todayLeaders.map((leader) => (
                   <div key={leader.rank} className={`leaderboard-row`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 space-x-reverse">

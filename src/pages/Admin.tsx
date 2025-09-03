@@ -14,7 +14,6 @@ import {
   Download, 
   Calendar,
   Search,
-  Filter,
   CheckCircle,
   XCircle,
   Clock,
@@ -23,50 +22,86 @@ import {
   RotateCcw
 } from 'lucide-react';
 
-const Admin = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
-
-  // Mock data
-  const stats = {
+// Static data store for admin panel
+const adminData = {
+  stats: {
     totalUsers: 1247,
     activeToday: 87,
     totalDurood: 125487,
     pendingPayouts: 12,
     monthlyWinners: 3
-  };
-
-  const users = [
+  },
+  users: [
     { id: 1, name: 'احمد علی', email: 'ahmed@example.com', totalCount: 1234, todayCount: 47, status: 'active', joinDate: '2024-01-15' },
     { id: 2, name: 'فاطمہ خان', email: 'fatima@example.com', totalCount: 2156, todayCount: 89, status: 'active', joinDate: '2024-01-20' },
-    { id: 3, name: 'محمد حسن', email: 'hassan@example.com', totalCount: 2847, todayCount: 156, status: 'banned', joinDate: '2024-01-10' }
-  ];
-
-  const payouts = [
+    { id: 3, name: 'محمد حسن', email: 'hassan@example.com', totalCount: 2847, todayCount: 156, status: 'banned', joinDate: '2024-01-10' },
+    { id: 4, name: 'عائشہ صدیقی', email: 'aisha@example.com', totalCount: 1876, todayCount: 92, status: 'active', joinDate: '2024-01-25' },
+    { id: 5, name: 'عمر فاروق', email: 'umar@example.com', totalCount: 1543, todayCount: 73, status: 'active', joinDate: '2024-02-01' }
+  ],
+  payouts: [
     { id: 1, userId: 1, userName: 'احمد علی', month: '2024-02', points: 1234, amount: 2468, method: 'Easypaisa', account: '0300-1234567', status: 'pending' },
     { id: 2, userId: 2, userName: 'فاطمہ خان', month: '2024-02', points: 2156, amount: 4312, method: 'Bank', account: '12345678901234', status: 'approved' },
-    { id: 3, userId: 3, userName: 'محمد حسن', month: '2024-01', points: 2847, amount: 5694, method: 'JazzCash', account: '0301-9876543', status: 'paid' }
-  ];
-
-  const winners = [
+    { id: 3, userId: 3, userName: 'محمد حسن', month: '2024-01', points: 2847, amount: 5694, method: 'JazzCash', account: '0301-9876543', status: 'paid' },
+    { id: 4, userId: 4, userName: 'عائشہ صدیقی', month: '2024-02', points: 1876, amount: 3752, method: 'Bank', account: '98765432109876', status: 'pending' }
+  ],
+  winners: [
     { rank: 1, name: 'محمد حسن', points: 2847, prize: '۵۰۰۰ روپے نقد', month: '2024-02' },
     { rank: 2, name: 'فاطمہ خان', points: 2156, prize: 'قرآن پاک', month: '2024-02' },
     { rank: 3, name: 'علی احمد', points: 1923, prize: 'تسبیح + کاؤنٹر', month: '2024-02' }
-  ];
+  ],
+  settings: {
+    pointValuePKR: 2,
+    pressCooldownMs: 1000,
+    prizes: [
+      { rank: 1, label: '۵۰۰۰ روپے نقد' },
+      { rank: 2, label: 'قرآن پاک' },
+      { rank: 3, label: 'تسبیح + کاؤنٹر' }
+    ]
+  }
+};
+
+const Admin = () => {
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [users, setUsers] = useState(adminData.users);
+  const [payouts, setPayouts] = useState(adminData.payouts);
+  const [settings, setSettings] = useState(adminData.settings);
 
   const updatePayoutStatus = (id: number, status: string) => {
-    console.log(`Updating payout ${id} to ${status}`);
-    // Here you would update the status in your database
+    setPayouts(prev => prev.map(payout => 
+      payout.id === id ? { ...payout, status } : payout
+    ));
+    console.log(`Updated payout ${id} to ${status}`);
   };
 
   const toggleUserStatus = (id: number, currentStatus: string) => {
     const newStatus = currentStatus === 'active' ? 'banned' : 'active';
-    console.log(`Toggling user ${id} from ${currentStatus} to ${newStatus}`);
-    // Here you would update the user status in your database
+    setUsers(prev => prev.map(user => 
+      user.id === id ? { ...user, status: newStatus } : user
+    ));
+    console.log(`Toggled user ${id} from ${currentStatus} to ${newStatus}`);
   };
 
   const exportData = (type: string) => {
     console.log(`Exporting ${type} data`);
-    // Here you would generate and download CSV
+    // Simulate CSV export
+    const data = type === 'users' ? users : type === 'payouts' ? payouts : adminData.winners;
+    const csvContent = "data:text/csv;charset=utf-8," + 
+      Object.keys(data[0]).join(",") + "\n" +
+      data.map(row => Object.values(row).join(",")).join("\n");
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `${type}_export.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const updateSettings = () => {
+    console.log('Settings updated:', settings);
+    // In a real app, this would save to database
+    localStorage.setItem('admin_settings', JSON.stringify(settings));
   };
 
   return (
@@ -110,7 +145,7 @@ const Admin = () => {
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <Users className="w-8 h-8 text-primary" />
                     <div>
-                      <p className="text-2xl font-bold">{stats.totalUsers}</p>
+                      <p className="text-2xl font-bold">{adminData.stats.totalUsers}</p>
                       <p className="text-sm text-muted-foreground arabic">کل صارفین</p>
                     </div>
                   </div>
@@ -122,7 +157,7 @@ const Admin = () => {
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <Clock className="w-8 h-8 text-success" />
                     <div>
-                      <p className="text-2xl font-bold">{stats.activeToday}</p>
+                      <p className="text-2xl font-bold">{adminData.stats.activeToday}</p>
                       <p className="text-sm text-muted-foreground arabic">آج فعال</p>
                     </div>
                   </div>
@@ -134,7 +169,7 @@ const Admin = () => {
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <Trophy className="w-8 h-8 text-spiritual" />
                     <div>
-                      <p className="text-2xl font-bold">{stats.totalDurood.toLocaleString()}</p>
+                      <p className="text-2xl font-bold">{adminData.stats.totalDurood.toLocaleString()}</p>
                       <p className="text-sm text-muted-foreground arabic">کل درود</p>
                     </div>
                   </div>
@@ -146,7 +181,7 @@ const Admin = () => {
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <DollarSign className="w-8 h-8 text-gold" />
                     <div>
-                      <p className="text-2xl font-bold">{stats.pendingPayouts}</p>
+                      <p className="text-2xl font-bold">{adminData.stats.pendingPayouts}</p>
                       <p className="text-sm text-muted-foreground arabic">زیر التوا ادائیگیاں</p>
                     </div>
                   </div>
@@ -158,7 +193,7 @@ const Admin = () => {
                   <div className="flex items-center space-x-2 space-x-reverse">
                     <Calendar className="w-8 h-8 text-warning" />
                     <div>
-                      <p className="text-2xl font-bold">{stats.monthlyWinners}</p>
+                      <p className="text-2xl font-bold">{adminData.stats.monthlyWinners}</p>
                       <p className="text-sm text-muted-foreground arabic">اس ماہ فاتحین</p>
                     </div>
                   </div>
@@ -402,7 +437,7 @@ const Admin = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {winners.map((winner) => (
+                  {adminData.winners.map((winner) => (
                     <div key={winner.rank} className={`leaderboard-row rank-${winner.rank}`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4 space-x-reverse">
@@ -440,14 +475,26 @@ const Admin = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="pointValue" className="arabic">ایک پوائنٹ = PKR</Label>
-                      <Input id="pointValue" type="number" defaultValue="2" className="text-right" />
+                      <Input 
+                        id="pointValue" 
+                        type="number" 
+                        value={settings.pointValuePKR}
+                        onChange={(e) => setSettings(prev => ({...prev, pointValuePKR: Number(e.target.value)}))}
+                        className="text-right" 
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="cooldown" className="arabic">پریس کولڈاؤن (ملی سیکنڈ)</Label>
-                      <Input id="cooldown" type="number" defaultValue="1000" className="text-right" />
+                      <Input 
+                        id="cooldown" 
+                        type="number" 
+                        value={settings.pressCooldownMs}
+                        onChange={(e) => setSettings(prev => ({...prev, pressCooldownMs: Number(e.target.value)}))}
+                        className="text-right" 
+                      />
                     </div>
                   </div>
-                  <Button className="arabic">تبدیلیاں محفوظ کریں</Button>
+                  <Button onClick={updateSettings} className="arabic">تبدیلیاں محفوظ کریں</Button>
                 </CardContent>
               </Card>
 
@@ -457,20 +504,23 @@ const Admin = () => {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-4">
-                      <Label className="arabic">پہلا انعام:</Label>
-                      <Input defaultValue="۵۰۰۰ روپے نقد" className="text-right arabic" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Label className="arabic">دوسرا انعام:</Label>
-                      <Input defaultValue="قرآن پاک" className="text-right arabic" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Label className="arabic">تیسرا انعام:</Label>
-                      <Input defaultValue="تسبیح + کاؤنٹر" className="text-right arabic" />
-                    </div>
+                    {settings.prizes.map((prize, index) => (
+                      <div key={prize.rank} className="grid grid-cols-2 gap-4">
+                        <Label className="arabic">{prize.rank === 1 ? 'پہلا انعام:' : prize.rank === 2 ? 'دوسرا انعام:' : 'تیسرا انعام:'}</Label>
+                        <Input 
+                          value={prize.label}
+                          onChange={(e) => setSettings(prev => ({
+                            ...prev, 
+                            prizes: prev.prizes.map((p, i) => 
+                              i === index ? {...p, label: e.target.value} : p
+                            )
+                          }))}
+                          className="text-right arabic" 
+                        />
+                      </div>
+                    ))}
                   </div>
-                  <Button className="arabic">انعامات اپڈیٹ کریں</Button>
+                  <Button onClick={updateSettings} className="arabic">انعامات اپڈیٹ کریں</Button>
                 </CardContent>
               </Card>
             </div>

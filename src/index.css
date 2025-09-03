@@ -178,5 +178,5 @@ All colors MUST be HSL.
   
   .rank-1 { @apply border-gold/50 bg-gradient-to-r from-gold/10 to-gold-light/5; }
   .rank-2 { @apply border-spiritual/50 bg-gradient-to-r from-spiritual/10 to-spiritual-light/5; }
-  .rank-3 { @apply border-primary/50 bg-gradient-to-r from-primary/10 to-primary-light/5; }
+  .rank-3 { @apply border-primary/50 bg-gradient-to-r from-primary/10 to-primary-glow/5; }
 }

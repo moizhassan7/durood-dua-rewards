@@ -30,8 +30,17 @@ const Login = () => {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate API call
+    // Simulate authentication with static data
     setTimeout(() => {
+      const user = {
+        name: formData.fullName || 'احمد علی',
+        email: formData.email,
+        id: Date.now().toString()
+      };
+      
+      // Save user to localStorage
+      localStorage.setItem('durood_user', JSON.stringify(user));
+      
       setIsLoading(false);
       // Redirect to home page
       window.location.href = '/';
@@ -234,7 +243,7 @@ const Login = () => {
               {/* Demo Notice */}
               <div className="text-center p-3 bg-muted/50 rounded-lg border border-border/50">
                 <p className="text-xs text-muted-foreground ltr">
-                  Demo Mode: Use any email/password to continue
+                  Static Demo: Use any email/password to continue
                 </p>
               </div>
 
