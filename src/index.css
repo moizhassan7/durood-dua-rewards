@@ -99,7 +99,84 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  html {
+    direction: rtl;
+  }
+
   body {
     @apply bg-background text-foreground;
+    font-family: 'Noto Naskh Arabic', 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
   }
+  
+  /* English text direction override */
+  .ltr {
+    direction: ltr;
+  }
+}
+
+@layer components {
+  /* Islamic button variants */
+  .btn-islamic {
+    @apply bg-gradient-to-br from-primary to-primary-light text-primary-foreground;
+    @apply px-8 py-4 rounded-2xl font-semibold text-lg;
+    @apply shadow-lg hover:shadow-islamic transform hover:scale-105;
+    @apply transition-all duration-300 ease-out;
+    @apply border border-primary/20;
+  }
+  
+  .btn-gold {
+    @apply bg-gradient-to-br from-gold to-gold-light text-gold-foreground;
+    @apply px-6 py-3 rounded-xl font-semibold;
+    @apply shadow-lg hover:shadow-gold transform hover:scale-105;
+    @apply transition-all duration-300 ease-out;
+    @apply border border-gold/30;
+  }
+  
+  .btn-spiritual {
+    @apply bg-gradient-to-br from-spiritual to-spiritual-light text-spiritual-foreground;
+    @apply px-6 py-3 rounded-xl font-semibold;
+    @apply shadow-lg transform hover:scale-105;
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  /* Islamic card styles */
+  .card-islamic {
+    @apply bg-card rounded-2xl p-6 shadow-card border border-border/50;
+    @apply backdrop-blur-sm;
+  }
+  
+  .card-gold {
+    @apply bg-gradient-to-br from-gold/10 to-gold-light/10 rounded-2xl p-6;
+    @apply border border-gold/20 shadow-gold;
+  }
+  
+  /* Counter styles */
+  .counter-ring {
+    @apply w-32 h-32 rounded-full border-8 border-primary/20;
+    @apply flex items-center justify-center text-4xl font-bold;
+    @apply bg-gradient-to-br from-primary/5 to-primary-glow/10;
+    @apply transition-all duration-500 ease-out;
+  }
+  
+  .counter-ring.active {
+    @apply border-primary scale-110 shadow-glow;
+    @apply bg-gradient-to-br from-primary/20 to-primary-glow/30;
+  }
+  
+  /* Arabic text styling */
+  .arabic {
+    font-family: 'Noto Naskh Arabic', serif;
+    line-height: 1.8;
+  }
+  
+  /* Leaderboard styles */
+  .leaderboard-row {
+    @apply p-4 rounded-xl border border-border/30 bg-card/50;
+    @apply hover:bg-card transition-colors duration-200;
+  }
+  
+  .rank-1 { @apply border-gold/50 bg-gradient-to-r from-gold/10 to-gold-light/5; }
+  .rank-2 { @apply border-spiritual/50 bg-gradient-to-r from-spiritual/10 to-spiritual-light/5; }
+  .rank-3 { @apply border-primary/50 bg-gradient-to-r from-primary/10 to-primary-light/5; }
 }
