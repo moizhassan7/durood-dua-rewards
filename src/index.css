@@ -139,7 +139,7 @@ All colors MUST be HSL.
   .btn-islamic {
     @apply bg-gradient-to-br from-primary to-primary-light text-primary-foreground;
     @apply px-8 py-4 rounded-2xl font-semibold text-lg;
-    @apply shadow-lg hover:shadow-islamic transform hover:scale-105;
+    @apply shadow-islamic hover:shadow-glow transform hover:scale-105;
     @apply transition-all duration-300 ease-out;
     @apply border border-primary/20;
   }
@@ -147,7 +147,7 @@ All colors MUST be HSL.
   .btn-gold {
     @apply bg-gradient-to-br from-gold to-gold-light text-gold-foreground;
     @apply px-6 py-3 rounded-xl font-semibold;
-    @apply shadow-lg hover:shadow-gold transform hover:scale-105;
+    @apply shadow-gold transform hover:scale-105;
     @apply transition-all duration-300 ease-out;
     @apply border border-gold/30;
   }
