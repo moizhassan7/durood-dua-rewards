@@ -4,9 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
-import { Mail, Lock, UserPlus, LogIn, Eye, EyeOff } from 'lucide-react';
-import islamicHeroBg from '@/assets/islamic-hero-bg.jpg';
-import prayerBeads from '@/assets/prayer-beads.jpg';
+import { Mail, Lock, UserPlus, LogIn, Eye, EyeOff, Heart } from 'lucide-react';
+import islamicPatternBg from '@/assets/islamic-pattern-bg.jpg';
+import mosqueSunset from '@/assets/mosque-sunset.jpg';
 
 const Login = () => {
   const [isSignup, setIsSignup] = useState(false);
@@ -62,7 +62,7 @@ const Login = () => {
       {/* Background */}
       <div 
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${islamicHeroBg})` }}
+        style={{ backgroundImage: `url(${islamicPatternBg})` }}
       >
         <div className="absolute inset-0 bg-gradient-to-br from-primary/30 via-primary/50 to-primary/70"></div>
       </div>
@@ -72,8 +72,8 @@ const Login = () => {
         <div className="w-full max-w-md">
           <Card className="card-islamic backdrop-blur-md bg-card/95 border-2 border-primary/20 shadow-islamic">
             <CardHeader className="text-center space-y-4">
-              <div className="mx-auto w-16 h-16 rounded-full bg-gradient-islamic p-3 shadow-glow">
-                <img src={prayerBeads} alt="Prayer beads" className="w-full h-full object-cover rounded-full" />
+              <div className="mx-auto w-16 h-16 rounded-full bg-gradient-islamic p-3 shadow-glow flex items-center justify-center">
+                <Heart className="w-8 h-8 text-white" />
               </div>
               <CardTitle className="text-2xl font-bold arabic text-primary">
                 {isSignup ? 'نیا اکاؤنٹ بنائیں' : 'واپس آئیں'}

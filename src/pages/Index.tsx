@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Crown, Gift, Clock, Users, Star } from 'lucide-react';
-import islamicHeroBg from '@/assets/islamic-hero-bg.jpg';
-import prayerBeads from '@/assets/prayer-beads.jpg';
+import { Trophy, Crown, Gift, Clock, Users, Star, Heart, Zap } from 'lucide-react';
+import islamicPatternBg from '@/assets/islamic-pattern-bg.jpg';
+import bismillahCalligraphy from '@/assets/bismillah-calligraphy.jpg';
+import mosqueSunset from '@/assets/mosque-sunset.jpg';
 
 // Static data store to simulate database
 const staticData = {
@@ -108,7 +109,7 @@ const Index = () => {
         {/* Hero Background */}
         <div 
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${islamicHeroBg})` }}
+          style={{ backgroundImage: `url(${islamicPatternBg})` }}
         >
           <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-primary/40 to-primary/60"></div>
         </div>
@@ -118,11 +119,16 @@ const Index = () => {
           <div className="max-w-md w-full">
             <Card className="card-islamic backdrop-blur-md bg-card/95 border-2 border-gold/30">
               <CardHeader className="text-center space-y-4">
-                <div className="mx-auto w-20 h-20 rounded-full bg-gradient-gold p-4 shadow-gold">
-                  <img src={prayerBeads} alt="Prayer beads" className="w-full h-full object-cover rounded-full" />
+                {/* Bismillah Header */}
+                <div className="w-full h-20 bg-gradient-to-r from-primary to-gold rounded-lg mb-4 flex items-center justify-center overflow-hidden"
+                     style={{ backgroundImage: `url(${bismillahCalligraphy})`, backgroundSize: 'cover', backgroundPosition: 'center' }}>
+                  <div className="bg-black/30 backdrop-blur-sm rounded-lg p-2">
+                    <h1 className="text-white font-calligraphy text-sm">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</h1>
+                  </div>
                 </div>
-                <CardTitle className="text-3xl font-bold arabic text-primary">
+                <CardTitle className="text-2xl font-bold arabic text-primary calligraphy">
                   درود پڑھیں، نیکیاں کمائیں
+                  <span className="block text-sm font-normal text-muted-foreground mt-1 ltr">Read Durood, Earn Rewards</span>
                 </CardTitle>
                 <p className="text-muted-foreground arabic text-lg">
                   شروع کرنے کے لیے لاگ اِن کریں
@@ -163,7 +169,7 @@ const Index = () => {
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-3 space-x-reverse">
             <div className="w-10 h-10 rounded-full bg-gradient-islamic p-2">
-              <img src={prayerBeads} alt="App logo" className="w-full h-full object-cover rounded-full" />
+              <Heart className="w-6 h-6 text-white mx-auto" />
             </div>
             <div>
               <h1 className="font-bold text-primary arabic">درود ریوارڈز</h1>

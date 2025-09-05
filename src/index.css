@@ -124,13 +124,31 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Noto Naskh Arabic', 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Tajawal', 'Noto Naskh Arabic', 'Inter', system-ui, -apple-system, sans-serif;
     font-feature-settings: 'kern' 1, 'liga' 1, 'calt' 1;
+  }
+  
+  /* Arabic text styling */
+  .arabic {
+    font-family: 'Noto Naskh Arabic', 'Amiri', serif;
+    line-height: 1.8;
+    text-align: right;
+  }
+  
+  .calligraphy {
+    font-family: 'Amiri', 'Scheherazade New', serif;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+  
+  .modern-arabic {
+    font-family: 'Tajawal', sans-serif;
   }
   
   /* English text direction override */
   .ltr {
     direction: ltr;
+    text-align: left;
   }
 }
 

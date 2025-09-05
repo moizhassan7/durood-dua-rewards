@@ -63,7 +63,14 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
-				},
+			},
+			fontFamily: {
+				'arabic': ['Noto Naskh Arabic', 'serif'],
+				'urdu': ['Noto Naskh Arabic', 'serif'],
+				'calligraphy': ['Amiri', 'serif'],
+				'modern-arabic': ['Tajawal', 'sans-serif'],
+				'elegant': ['Scheherazade New', 'serif'],
+			},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
