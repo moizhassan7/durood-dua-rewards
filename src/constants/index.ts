@@ -1,0 +1,2 @@
+
+export const PAYOUT_THRESHOLD = 30000;

@@ -1,0 +1,702 @@
+[
+    {
+      "id": 1,
+      "name_arabic": "مُحَمَّد",
+      "transliteration": "Muhammad",
+      "meaning_english": "The Most Praised One",
+      "meaning_urdu": "بہت تعریف کیا گیا"
+    },
+    {
+      "id": 2,
+      "name_arabic": "أَحْمَد",
+      "transliteration": "Ahmad",
+      "meaning_english": "Most Praiseworthy",
+      "meaning_urdu": "سب سے زیادہ تعریف کا حقدار"
+    },
+    {
+      "id": 3,
+      "name_arabic": "حَامِد",
+      "transliteration": "Hamid",
+      "meaning_english": "The Praiser",
+      "meaning_urdu": "تعریف کرنے والا"
+    },
+    {
+      "id": 4,
+      "name_arabic": "مَحْمُود",
+      "transliteration": "Mahmud",
+      "meaning_english": "Praised, Laudable",
+      "meaning_urdu": "قابلِ تعریف"
+    },
+    {
+      "id": 5,
+      "name_arabic": "أَبُو القَاسِم",
+      "transliteration": "Abu Al-Qasim",
+      "meaning_english": "Father of Qasim",
+      "meaning_urdu": "قاسم کا باپ"
+    },
+    {
+      "id": 6,
+      "name_arabic": "أَبُو الطَّاهِر",
+      "transliteration": "Abu At-Tahir",
+      "meaning_english": "Father of the Pure One",
+      "meaning_urdu": "پاکیزہ کا باپ"
+    },
+    {
+      "id": 7,
+      "name_arabic": "أَبُو الطَّيِّب",
+      "transliteration": "Abu At-Tayyib",
+      "meaning_english": "Father of the Good One",
+      "meaning_urdu": "خوشگوار کا باپ"
+    },
+    {
+      "id": 8,
+      "name_arabic": "طٰهٰ",
+      "transliteration": "Taha",
+      "meaning_english": "A name from the Qur'an",
+      "meaning_urdu": "قرآن سے ایک نام"
+    },
+    {
+      "id": 9,
+      "name_arabic": "يٰس",
+      "transliteration": "Yasin",
+      "meaning_english": "A name from the Qur'an",
+      "meaning_urdu": "قرآن سے ایک نام"
+    },
+    {
+      "id": 10,
+      "name_arabic": "مُصْطَفَى",
+      "transliteration": "Mustafa",
+      "meaning_english": "The Chosen One",
+      "meaning_urdu": "چنا ہوا"
+    },
+    {
+      "id": 11,
+      "name_arabic": "مُجْتَبَى",
+      "transliteration": "Mujtaba",
+      "meaning_english": "The Selected One",
+      "meaning_urdu": "منتخب کیا ہوا"
+    },
+    {
+      "id": 12,
+      "name_arabic": "حَبِيبُ اللّٰه",
+      "transliteration": "Habib Allah",
+      "meaning_english": "The Beloved of Allah",
+      "meaning_urdu": "اللہ کا محبوب"
+    },
+    {
+      "id": 13,
+      "name_arabic": "خَاتَمُ النَّبِيِّينَ",
+      "transliteration": "Khatamun Nabiyyin",
+      "meaning_english": "The Seal of the Prophets",
+      "meaning_urdu": "نبیوں کا آخری"
+    },
+    {
+      "id": 14,
+      "name_arabic": "مَاحِي",
+      "transliteration": "Mahi",
+      "meaning_english": "The Eraser (of disbelief)",
+      "meaning_urdu": "کفر کو مٹانے والا"
+    },
+    {
+      "id": 15,
+      "name_arabic": "حَاشِر",
+      "transliteration": "Hashir",
+      "meaning_english": "The Gatherer",
+      "meaning_urdu": "جمع کرنے والا"
+    },
+    {
+      "id": 16,
+      "name_arabic": "عَاقِب",
+      "transliteration": "Aqib",
+      "meaning_english": "The Last in Succession",
+      "meaning_urdu": "سب کے بعد آنے والا"
+    },
+    {
+      "id": 17,
+      "name_arabic": "رَسُولُ اللّٰه",
+      "transliteration": "Rasul Allah",
+      "meaning_english": "The Messenger of Allah",
+      "meaning_urdu": "اللہ کا رسول"
+    },
+    {
+      "id": 18,
+      "name_arabic": "نَبِيّ",
+      "transliteration": "Nabi",
+      "meaning_english": "The Prophet",
+      "meaning_urdu": "نبی"
+    },
+    {
+      "id": 19,
+      "name_arabic": "رَسُولُ الرَّحْمَة",
+      "transliteration": "Rasul-ur-Rahma",
+      "meaning_english": "The Messenger of Mercy",
+      "meaning_urdu": "رحمت کا رسول"
+    },
+    {
+      "id": 20,
+      "name_arabic": "قَيِّم",
+      "transliteration": "Qayyim",
+      "meaning_english": "The Upholder, The Straight One",
+      "meaning_urdu": "قائم کرنے والا، سیدھا"
+    },
+    {
+      "id": 21,
+      "name_arabic": "أَمِين",
+      "transliteration": "Amin",
+      "meaning_english": "The Trustworthy One",
+      "meaning_urdu": "امانت دار"
+    },
+    {
+      "id": 22,
+      "name_arabic": "شَاهِد",
+      "transliteration": "Shahid",
+      "meaning_english": "The Witness",
+      "meaning_urdu": "گواہ"
+    },
+    {
+      "id": 23,
+      "name_arabic": "بَشِير",
+      "transliteration": "Bashir",
+      "meaning_english": "The Bearer of Good Tidings",
+      "meaning_urdu": "خوشخبری دینے والا"
+    },
+    {
+      "id": 24,
+      "name_arabic": "نَذِير",
+      "transliteration": "Nadhir",
+      "meaning_english": "The Warner",
+      "meaning_urdu": "ڈرانے والا"
+    },
+    {
+      "id": 25,
+      "name_arabic": "سِرَاجٌ مُنِير",
+      "transliteration": "Siraj-un-Munir",
+      "meaning_english": "The Light-Giving Lamp",
+      "meaning_urdu": "روشن چراغ"
+    },
+    {
+      "id": 26,
+      "name_arabic": "مُبَشِّر",
+      "transliteration": "Mubashshir",
+      "meaning_english": "The Conveyor of Glad Tidings",
+      "meaning_urdu": "خوشخبریاں پہنچانے والا"
+    },
+    {
+      "id": 27,
+      "name_arabic": "مُنْذِر",
+      "transliteration": "Mundhir",
+      "meaning_english": "The Admonisher",
+      "meaning_urdu": "نصیحت کرنے والا"
+    },
+    {
+      "id": 28,
+      "name_arabic": "دَاعٍ إِلَى اللّٰه",
+      "transliteration": "Dai ila Allah",
+      "meaning_english": "The Caller to Allah",
+      "meaning_urdu": "اللہ کی طرف بلانے والا"
+    },
+    {
+      "id": 29,
+      "name_arabic": "رَؤُوف",
+      "transliteration": "Rauf",
+      "meaning_english": "The Kind, Compassionate",
+      "meaning_urdu": "بہت مہربان، شفیق"
+    },
+    {
+      "id": 30,
+      "name_arabic": "رَحِيم",
+      "transliteration": "Rahim",
+      "meaning_english": "The Merciful",
+      "meaning_urdu": "رحم کرنے والا"
+    },
+    {
+      "id": 31,
+      "name_arabic": "مُتَوَكِّل",
+      "transliteration": "Mutawakkil",
+      "meaning_english": "The One who puts his trust (in Allah)",
+      "meaning_urdu": "اللہ پر بھروسہ کرنے والا"
+    },
+    {
+      "id": 32,
+      "name_arabic": "مُبِين",
+      "transliteration": "Mubin",
+      "meaning_english": "The Clear, Evident",
+      "meaning_urdu": "واضح، ظاہر"
+    },
+    {
+      "id": 33,
+      "name_arabic": "شَافِع",
+      "transliteration": "Shafi",
+      "meaning_english": "The Intercessor",
+      "meaning_urdu": "شفاعت کرنے والا"
+    },
+    {
+      "id": 34,
+      "name_arabic": "نُور",
+      "transliteration": "Noor",
+      "meaning_english": "The Light",
+      "meaning_urdu": "نور، روشنی"
+    },
+    {
+      "id": 35,
+      "name_arabic": "سَيِّد",
+      "transliteration": "Sayyid",
+      "meaning_english": "The Master",
+      "meaning_urdu": "سردار"
+    },
+    {
+      "id": 36,
+      "name_arabic": "مُبَارَك",
+      "transliteration": "Mubarak",
+      "meaning_english": "The Blessed One",
+      "meaning_urdu": "برکت والا"
+    },
+    {
+      "id": 37,
+      "name_arabic": "طَاهِر",
+      "transliteration": "Tahir",
+      "meaning_english": "The Pure",
+      "meaning_urdu": "پاک"
+    },
+    {
+      "id": 38,
+      "name_arabic": "طَيِّب",
+      "transliteration": "Tayyib",
+      "meaning_english": "The Good, Pleasant",
+      "meaning_urdu": "اچھا، خوشگوار"
+    },
+    {
+      "id": 39,
+      "name_arabic": "فَاتِح",
+      "transliteration": "Fatih",
+      "meaning_english": "The Opener, The Conqueror",
+      "meaning_urdu": "کھولنے والا، فاتح"
+    },
+    {
+      "id": 40,
+      "name_arabic": "عَبْدُ اللّٰه",
+      "transliteration": "Abdullah",
+      "meaning_english": "The Servant of Allah",
+      "meaning_urdu": "اللہ کا بندہ"
+    },
+    {
+      "id": 41,
+      "name_arabic": "مَجْدِيّ",
+      "transliteration": "Majdiyy",
+      "meaning_english": "Glorious",
+      "meaning_urdu": "بزرگ، پرشکوہ"
+    },
+    {
+      "id": 42,
+      "name_arabic": "أُمِّي",
+      "transliteration": "Ummi",
+      "meaning_english": "The Unlettered",
+      "meaning_urdu": "ان پڑھ"
+    },
+    {
+      "id": 43,
+      "name_arabic": "مُصَدِّق",
+      "transliteration": "Musaddiq",
+      "meaning_english": "The Verifier",
+      "meaning_urdu": "تصدیق کرنے والا"
+    },
+    {
+      "id": 44,
+      "name_arabic": "مُزَمِّل",
+      "transliteration": "Muzammil",
+      "meaning_english": "The One Wrapped in a Garment",
+      "meaning_urdu": "کپڑوں میں لپٹا ہوا"
+    },
+    {
+      "id": 45,
+      "name_arabic": "مُدَّثِّر",
+      "transliteration": "Muddaththir",
+      "meaning_english": "The One Enveloped in a Cloak",
+      "meaning_urdu": "چادر اوڑھے ہوئے"
+    },
+    {
+      "id": 46,
+      "name_arabic": "غَيْث",
+      "transliteration": "Ghayth",
+      "meaning_english": "The Rain (of Mercy)",
+      "meaning_urdu": "رحمت کی بارش"
+    },
+    {
+      "id": 47,
+      "name_arabic": "نَجِيّ",
+      "transliteration": "Najiyy",
+      "meaning_english": "The Confidant",
+      "meaning_urdu": "رازدان"
+    },
+    {
+      "id": 48,
+      "name_arabic": "هَادِي",
+      "transliteration": "Hadi",
+      "meaning_english": "The Guide",
+      "meaning_urdu": "ہدایت دینے والا"
+    },
+    {
+      "id": 49,
+      "name_arabic": "مُعْتَصِم",
+      "transliteration": "Mu'tasim",
+      "meaning_english": "The Protected One",
+      "meaning_urdu": "پناہ دیا گیا"
+    },
+    {
+      "id": 50,
+      "name_arabic": "مُقْتَفِي",
+      "transliteration": "Muqtafi",
+      "meaning_english": "The Follower (of past Prophets)",
+      "meaning_urdu": "پیچھے آنے والا"
+    },
+    {
+      "id": 51,
+      "name_arabic": "مُقَفَّى",
+      "transliteration": "Muqaffa",
+      "meaning_english": "The One who is Followed",
+      "meaning_urdu": "جس کی پیروی کی جائے"
+    },
+    {
+      "id": 52,
+      "name_arabic": "أَحِيد",
+      "transliteration": "Ahid",
+      "meaning_english": "The Repeller of others (from Fire)",
+      "meaning_urdu": "دوزخ سے دور رکھنے والا"
+    },
+    {
+      "id": 53,
+      "name_arabic": "رَسُولُ المَلَاحِم",
+      "transliteration": "Rasul-ul-Malahim",
+      "meaning_english": "The Messenger of Fierce Battles",
+      "meaning_urdu": "شدید جنگوں کا رسول"
+    },
+    {
+      "id": 54,
+      "name_arabic": "رَسُولُ الرَّاحَة",
+      "transliteration": "Rasul-ur-Raha",
+      "meaning_english": "The Messenger of Comfort",
+      "meaning_urdu": "راحت کا رسول"
+    },
+    {
+      "id": 55,
+      "name_arabic": "كَامِل",
+      "transliteration": "Kamil",
+      "meaning_english": "The Perfect",
+      "meaning_urdu": "کامل"
+    },
+    {
+      "id": 56,
+      "name_arabic": "اِكْلِيل",
+      "transliteration": "Iklil",
+      "meaning_english": "The Crown",
+      "meaning_urdu": "تاج"
+    },
+    {
+      "id": 57,
+      "name_arabic": "عَظِيم",
+      "transliteration": "Azim",
+      "meaning_english": "The Magnificent",
+      "meaning_urdu": "عظیم"
+    },
+    {
+      "id": 58,
+      "name_arabic": "شَفِيع",
+      "transliteration": "Shafi",
+      "meaning_english": "The Intercessor",
+      "meaning_urdu": "شفاعت کرنے والا"
+    },
+    {
+      "id": 59,
+      "name_arabic": "مُهْدِي",
+      "transliteration": "Muhdi",
+      "meaning_english": "The Giver of Guidance",
+      "meaning_urdu": "ہدایت دینے والا"
+    },
+    {
+      "id": 60,
+      "name_arabic": "رَشِيد",
+      "transliteration": "Rashid",
+      "meaning_english": "The Rightly Guided",
+      "meaning_urdu": "راہ راست پر"
+    },
+    {
+      "id": 61,
+      "name_arabic": "مَأْمُون",
+      "transliteration": "Ma'mun",
+      "meaning_english": "The Trusted One",
+      "meaning_urdu": "قابل اعتماد"
+    },
+    {
+      "id": 62,
+      "name_arabic": "صَادِق",
+      "transliteration": "Sadiq",
+      "meaning_english": "The Truthful",
+      "meaning_urdu": "سچا"
+    },
+    {
+      "id": 63,
+      "name_arabic": "مَنْصُور",
+      "transliteration": "Mansur",
+      "meaning_english": "The Victorious",
+      "meaning_urdu": "فتح پانے والا"
+    },
+    {
+      "id": 64,
+      "name_arabic": "غَنِي",
+      "transliteration": "Ghani",
+      "meaning_english": "The Self-Sufficient",
+      "meaning_urdu": "بے پرواہ"
+    },
+    {
+      "id": 65,
+      "name_arabic": "يَتِيم",
+      "transliteration": "Yatim",
+      "meaning_english": "The Orphan",
+      "meaning_urdu": "یتیم"
+    },
+    {
+      "id": 66,
+      "name_arabic": "أَمَر",
+      "transliteration": "Amar",
+      "meaning_english": "The Commander",
+      "meaning_urdu": "حکم دینے والا"
+    },
+    {
+      "id": 67,
+      "name_arabic": "نَاصِح",
+      "transliteration": "Nasih",
+      "meaning_english": "The Advisor",
+      "meaning_urdu": "نصیحت کرنے والا"
+    },
+    {
+      "id": 68,
+      "name_arabic": "فَصِيح",
+      "transliteration": "Fasih",
+      "meaning_english": "The Eloquent",
+      "meaning_urdu": "فصیح"
+    },
+    {
+      "id": 69,
+      "name_arabic": "مُفَضَّل",
+      "transliteration": "Mufaddal",
+      "meaning_english": "The Preferred One",
+      "meaning_urdu": "پسندیدہ"
+    },
+    {
+      "id": 70,
+      "name_arabic": "قَوِيّ",
+      "transliteration": "Qawiy",
+      "meaning_english": "The Strong",
+      "meaning_urdu": "قوی"
+    },
+    {
+      "id": 71,
+      "name_arabic": "نَقِيّ",
+      "transliteration": "Naqiyy",
+      "meaning_english": "The Pure",
+      "meaning_urdu": "پاک"
+    },
+    {
+      "id": 72,
+      "name_arabic": "مُتَوَاضِع",
+      "transliteration": "Mutawadi'",
+      "meaning_english": "The Humble",
+      "meaning_urdu": "عاجز"
+    },
+    {
+      "id": 73,
+      "name_arabic": "مُقَدَّم",
+      "transliteration": "Muqaddam",
+      "meaning_english": "The Foremost",
+      "meaning_urdu": "سب سے آگے"
+    },
+    {
+      "id": 74,
+      "name_arabic": "أَزْكَى",
+      "transliteration": "Azka",
+      "meaning_english": "The Purest",
+      "meaning_urdu": "سب سے پاک"
+    },
+    {
+      "id": 75,
+      "name_arabic": "أَطْيَب",
+      "transliteration": "Atyab",
+      "meaning_english": "The Best",
+      "meaning_urdu": "سب سے اچھا"
+    },
+    {
+      "id": 76,
+      "name_arabic": "خَيْرُ الخَلْق",
+      "transliteration": "Khair-ul-Khalq",
+      "meaning_english": "The Best of Creation",
+      "meaning_urdu": "بہترین مخلوق"
+    },
+    {
+      "id": 77,
+      "name_arabic": "نَاصِر",
+      "transliteration": "Nasir",
+      "meaning_english": "The Helper",
+      "meaning_urdu": "مددگار"
+    },
+    {
+      "id": 78,
+      "name_arabic": "مُعْطِي",
+      "transliteration": "Mu'ti",
+      "meaning_english": "The Giver",
+      "meaning_urdu": "عطا کرنے والا"
+    },
+    {
+      "id": 79,
+      "name_arabic": "فَتَّاح",
+      "transliteration": "Fattah",
+      "meaning_english": "The Opener, The Conqueror",
+      "meaning_urdu": "کھولنے والا، فاتح"
+    },
+    {
+      "id": 80,
+      "name_arabic": "جَامِع",
+      "transliteration": "Jami'",
+      "meaning_english": "The Gatherer",
+      "meaning_urdu": "جمع کرنے والا"
+    },
+    {
+      "id": 81,
+      "name_arabic": "نَجِيّ",
+      "transliteration": "Najiy",
+      "meaning_english": "The One who Confides",
+      "meaning_urdu": "جس سے راز کہے جائیں"
+    },
+    {
+      "id": 82,
+      "name_arabic": "مُرْتَضَى",
+      "transliteration": "Murtada",
+      "meaning_english": "The One Pleasing to Allah",
+      "meaning_urdu": "اللہ کو راضی کرنے والا"
+    },
+    {
+      "id": 83,
+      "name_arabic": "مُخْتَار",
+      "transliteration": "Mukhtar",
+      "meaning_english": "The Chosen",
+      "meaning_urdu": "منتخب"
+    },
+    {
+      "id": 84,
+      "name_arabic": "فَاضِل",
+      "transliteration": "Fadil",
+      "meaning_english": "The Virtuous",
+      "meaning_urdu": "نیک"
+    },
+    {
+      "id": 85,
+      "name_arabic": "مَقَامِي",
+      "transliteration": "Maqami",
+      "meaning_english": "The High-Stationed",
+      "meaning_urdu": "عالی مقام"
+    },
+    {
+      "id": 86,
+      "name_arabic": "هِمَّة",
+      "transliteration": "Himma",
+      "meaning_english": "The Determiner",
+      "meaning_urdu": "پختہ ارادے والا"
+    },
+    {
+      "id": 87,
+      "name_arabic": "سِرَاج",
+      "transliteration": "Siraj",
+      "meaning_english": "The Lamp",
+      "meaning_urdu": "چراغ"
+    },
+    {
+      "id": 88,
+      "name_arabic": "قَائِد",
+      "transliteration": "Qa'id",
+      "meaning_english": "The Leader",
+      "meaning_urdu": "قائد"
+    },
+    {
+      "id": 89,
+      "name_arabic": "حَرِيصٌ عَلَيْكُمْ",
+      "transliteration": "Harisun Alaikum",
+      "meaning_english": "Extremely Eager for your well-being",
+      "meaning_urdu": "تمہارے لئے بہت حریص"
+    },
+    {
+      "id": 90,
+      "name_arabic": "كَلِيمُ اللّٰه",
+      "transliteration": "Kalim Allah",
+      "meaning_english": "The One who spoke with Allah",
+      "meaning_urdu": "اللہ سے کلام کرنے والا"
+    },
+    {
+      "id": 91,
+      "name_arabic": "مُعَافِي",
+      "transliteration": "Mu'afi",
+      "meaning_english": "The Pardoner",
+      "meaning_urdu": "معاف کرنے والا"
+    },
+    {
+      "id": 92,
+      "name_arabic": "مُؤْمِن",
+      "transliteration": "Mu'min",
+      "meaning_english": "The Believer",
+      "meaning_urdu": "مومن"
+    },
+    {
+      "id": 93,
+      "name_arabic": "مُتَطَهِّر",
+      "transliteration": "Mutatahhir",
+      "meaning_english": "The Purified",
+      "meaning_urdu": "پاک کیا ہوا"
+    },
+    {
+      "id": 94,
+      "name_arabic": "صِفَة",
+      "transliteration": "Sifa",
+      "meaning_english": "The Attribute",
+      "meaning_urdu": "صفت"
+    },
+    {
+      "id": 95,
+      "name_arabic": "حِكْمَة",
+      "transliteration": "Hikma",
+      "meaning_english": "The Wisdom",
+      "meaning_urdu": "حکمت"
+    },
+    {
+      "id": 96,
+      "name_arabic": "عَذِيذ",
+      "transliteration": "Adhidh",
+      "meaning_english": "The Gentle",
+      "meaning_urdu": "نرم خو"
+    },
+    {
+      "id": 97,
+      "name_arabic": "بُرْهَان",
+      "transliteration": "Burhan",
+      "meaning_english": "The Proof",
+      "meaning_urdu": "دلیل"
+    },
+    {
+      "id": 98,
+      "name_arabic": "مُفْتَرَى",
+      "transliteration": "Muftara",
+      "meaning_english": "The Fabricated (a title given by his enemies)",
+      "meaning_urdu": "جھوٹا (دشمنوں کی طرف سے دیا گیا نام)"
+    },
+    {
+      "id": 99,
+      "name_arabic": "حَقّ",
+      "transliteration": "Haqq",
+      "meaning_english": "The Truth",
+      "meaning_urdu": "حق"
+    },
+    {
+      "id": 100,
+      "name_arabic": "نَبِيُّ الرَّحْمَة",
+      "transliteration": "Nabiyy-ur-Rahma",
+      "meaning_english": "The Prophet of Mercy",
+      "meaning_urdu": "رحمت کا نبی"
+    }
+  ]
