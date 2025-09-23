@@ -17,9 +17,10 @@ import MonthlyWinnersPage from './components/pages/MonthlyWinnersPage';
 import SecuritySettingsPage from './components/pages/SecuritySettingsPage';
 import SystemSettingsPage from './components/pages/SystemSettingsPage';
 import HadithPage from './components/pages/HadithPage';
-import VersePage from './components/pages/VersePage'; // New Import
-import { UserData } from './types';
+import VersePage from './components/pages/VersePage';
 import HadithVersePage from './components/pages/HadithVersePage';
+import QuranPage from './components/pages/QuranPage'; // New Import
+import { UserData } from './types';
 
 export default function App() {
   const [user, setUser] = useState<UserData | null>(null);
@@ -178,7 +179,9 @@ export default function App() {
         return <LeaderboardsPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
       case 'hadith-verse-page':
         return <HadithVersePage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
-      case 'admin':
+      case 'quran':
+        return <QuranPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
+        case 'admin':
         if (user.isAdmin) {
           return <AdminPanelPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
         }

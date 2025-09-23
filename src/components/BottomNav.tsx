@@ -1,4 +1,5 @@
-import { Home, Trophy, Settings, Bookmark } from 'lucide-react';
+import { Home, Trophy, Settings, Bookmark, BookOpen } from 'lucide-react';
+import { getAuth } from 'firebase/auth';
 
 interface BottomNavProps {
   currentPage: string;
@@ -23,6 +24,13 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentPage, setCurrentPage }) =>
           >
             <Trophy size={22} />
             <span className="text-xs mt-1" dir="rtl">لیڈر بورڈ</span>
+          </button>
+          <button
+            className={`flex flex-col items-center ${currentPage === 'quran' ? 'text-green-600' : 'text-gray-500'}`}
+            onClick={() => setCurrentPage('quran')}
+          >
+            <BookOpen size={22} />
+            <span className="text-xs mt-1" dir="rtl">قرآن</span>
           </button>
           <button
             className={`flex flex-col items-center ${currentPage === 'hadith-verse-page' ? 'text-green-600' : 'text-gray-500'}`}

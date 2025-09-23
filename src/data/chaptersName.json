@@ -1,0 +1,460 @@
+{
+    "surahs": [
+      {
+        "number": 1,
+        "name_urdu": "الفاتحہ"
+      },
+      {
+        "number": 2,
+        "name_urdu": "البقرہ"
+      },
+      {
+        "number": 3,
+        "name_urdu": "آل عمران"
+      },
+      {
+        "number": 4,
+        "name_urdu": "النساء"
+      },
+      {
+        "number": 5,
+        "name_urdu": "المائدہ"
+      },
+      {
+        "number": 6,
+        "name_urdu": "الأنعام"
+      },
+      {
+        "number": 7,
+        "name_urdu": "الأعراف"
+      },
+      {
+        "number": 8,
+        "name_urdu": "الأنفال"
+      },
+      {
+        "number": 9,
+        "name_urdu": "التوبہ"
+      },
+      {
+        "number": 10,
+        "name_urdu": "یونس"
+      },
+      {
+        "number": 11,
+        "name_urdu": "ہود"
+      },
+      {
+        "number": 12,
+        "name_urdu": "یوسف"
+      },
+      {
+        "number": 13,
+        "name_urdu": "الرعد"
+      },
+      {
+        "number": 14,
+        "name_urdu": "ابراہیم"
+      },
+      {
+        "number": 15,
+        "name_urdu": "الحجر"
+      },
+      {
+        "number": 16,
+        "name_urdu": "النحل"
+      },
+      {
+        "number": 17,
+        "name_urdu": "الاسراء"
+      },
+      {
+        "number": 18,
+        "name_urdu": "الکہف"
+      },
+      {
+        "number": 19,
+        "name_urdu": "مریم"
+      },
+      {
+        "number": 20,
+        "name_urdu": "طٰہٰ"
+      },
+      {
+        "number": 21,
+        "name_urdu": "الأنبیاء"
+      },
+      {
+        "number": 22,
+        "name_urdu": "الحج"
+      },
+      {
+        "number": 23,
+        "name_urdu": "المؤمنون"
+      },
+      {
+        "number": 24,
+        "name_urdu": "النور"
+      },
+      {
+        "number": 25,
+        "name_urdu": "الفرقان"
+      },
+      {
+        "number": 26,
+        "name_urdu": "الشعراء"
+      },
+      {
+        "number": 27,
+        "name_urdu": "النمل"
+      },
+      {
+        "number": 28,
+        "name_urdu": "القصص"
+      },
+      {
+        "number": 29,
+        "name_urdu": "العنکبوت"
+      },
+      {
+        "number": 30,
+        "name_urdu": "الروم"
+      },
+      {
+        "number": 31,
+        "name_urdu": "لقمان"
+      },
+      {
+        "number": 32,
+        "name_urdu": "السجدہ"
+      },
+      {
+        "number": 33,
+        "name_urdu": "الأحزاب"
+      },
+      {
+        "number": 34,
+        "name_urdu": "سبا"
+      },
+      {
+        "number": 35,
+        "name_urdu": "فاطر"
+      },
+      {
+        "number": 36,
+        "name_urdu": "یٰس"
+      },
+      {
+        "number": 37,
+        "name_urdu": "الصافات"
+      },
+      {
+        "number": 38,
+        "name_urdu": "ص"
+      },
+      {
+        "number": 39,
+        "name_urdu": "الزمر"
+      },
+      {
+        "number": 40,
+        "name_urdu": "غافر"
+      },
+      {
+        "number": 41,
+        "name_urdu": "فصلت"
+      },
+      {
+        "number": 42,
+        "name_urdu": "الشورٰی"
+      },
+      {
+        "number": 43,
+        "name_urdu": "الزخرف"
+      },
+      {
+        "number": 44,
+        "name_urdu": "الدخان"
+      },
+      {
+        "number": 45,
+        "name_urdu": "الجاثیہ"
+      },
+      {
+        "number": 46,
+        "name_urdu": "الاحقاف"
+      },
+      {
+        "number": 47,
+        "name_urdu": "محمد"
+      },
+      {
+        "number": 48,
+        "name_urdu": "الفتح"
+      },
+      {
+        "number": 49,
+        "name_urdu": "الحجرات"
+      },
+      {
+        "number": 50,
+        "name_urdu": "ق"
+      },
+      {
+        "number": 51,
+        "name_urdu": "الذاریات"
+      },
+      {
+        "number": 52,
+        "name_urdu": "الطور"
+      },
+      {
+        "number": 53,
+        "name_urdu": "النجم"
+      },
+      {
+        "number": 54,
+        "name_urdu": "القمر"
+      },
+      {
+        "number": 55,
+        "name_urdu": "الرحمٰن"
+      },
+      {
+        "number": 56,
+        "name_urdu": "الواقعہ"
+      },
+      {
+        "number": 57,
+        "name_urdu": "الحدید"
+      },
+      {
+        "number": 58,
+        "name_urdu": "المجادلہ"
+      },
+      {
+        "number": 59,
+        "name_urdu": "الحشر"
+      },
+      {
+        "number": 60,
+        "name_urdu": "الممتحنہ"
+      },
+      {
+        "number": 61,
+        "name_urdu": "الصف"
+      },
+      {
+        "number": 62,
+        "name_urdu": "الجمعہ"
+      },
+      {
+        "number": 63,
+        "name_urdu": "المنافقون"
+      },
+      {
+        "number": 64,
+        "name_urdu": "التغابن"
+      },
+      {
+        "number": 65,
+        "name_urdu": "الطلاق"
+      },
+      {
+        "number": 66,
+        "name_urdu": "التحریم"
+      },
+      {
+        "number": 67,
+        "name_urdu": "الملک"
+      },
+      {
+        "number": 68,
+        "name_urdu": "القلم"
+      },
+      {
+        "number": 69,
+        "name_urdu": "الحاقہ"
+      },
+      {
+        "number": 70,
+        "name_urdu": "المعارج"
+      },
+      {
+        "number": 71,
+        "name_urdu": "نوح"
+      },
+      {
+        "number": 72,
+        "name_urdu": "الجن"
+      },
+      {
+        "number": 73,
+        "name_urdu": "المزمل"
+      },
+      {
+        "number": 74,
+        "name_urdu": "المدثر"
+      },
+      {
+        "number": 75,
+        "name_urdu": "القیامہ"
+      },
+      {
+        "number": 76,
+        "name_urdu": "الدھر"
+      },
+      {
+        "number": 77,
+        "name_urdu": "المرسلات"
+      },
+      {
+        "number": 78,
+        "name_urdu": "النبأ"
+      },
+      {
+        "number": 79,
+        "name_urdu": "النازعات"
+      },
+      {
+        "number": 80,
+        "name_urdu": "عبس"
+      },
+      {
+        "number": 81,
+        "name_urdu": "التکویر"
+      },
+      {
+        "number": 82,
+        "name_urdu": "الإنفطار"
+      },
+      {
+        "number": 83,
+        "name_urdu": "المطففین"
+      },
+      {
+        "number": 84,
+        "name_urdu": "الإنشقاق"
+      },
+      {
+        "number": 85,
+        "name_urdu": "البروج"
+      },
+      {
+        "number": 86,
+        "name_urdu": "الطارق"
+      },
+      {
+        "number": 87,
+        "name_urdu": "الأعلیٰ"
+      },
+      {
+        "number": 88,
+        "name_urdu": "الغاشیہ"
+      },
+      {
+        "number": 89,
+        "name_urdu": "الفجر"
+      },
+      {
+        "number": 90,
+        "name_urdu": "البلد"
+      },
+      {
+        "number": 91,
+        "name_urdu": "الشمس"
+      },
+      {
+        "number": 92,
+        "name_urdu": "اللیل"
+      },
+      {
+        "number": 93,
+        "name_urdu": "الضحٰی"
+      },
+      {
+        "number": 94,
+        "name_urdu": "الشرح"
+      },
+      {
+        "number": 95,
+        "name_urdu": "التین"
+      },
+      {
+        "number": 96,
+        "name_urdu": "العلق"
+      },
+      {
+        "number": 97,
+        "name_urdu": "القدر"
+      },
+      {
+        "number": 98,
+        "name_urdu": "البینہ"
+      },
+      {
+        "number": 99,
+        "name_urdu": "الزلزال"
+      },
+      {
+        "number": 100,
+        "name_urdu": "العادیات"
+      },
+      {
+        "number": 101,
+        "name_urdu": "القارعة"
+      },
+      {
+        "number": 102,
+        "name_urdu": "التکاثر"
+      },
+      {
+        "number": 103,
+        "name_urdu": "العصر"
+      },
+      {
+        "number": 104,
+        "name_urdu": "الہمزہ"
+      },
+      {
+        "number": 105,
+        "name_urdu": "الفیل"
+      },
+      {
+        "number": 106,
+        "name_urdu": "قریش"
+      },
+      {
+        "number": 107,
+        "name_urdu": "الماعون"
+      },
+      {
+        "number": 108,
+        "name_urdu": "الکوثر"
+      },
+      {
+        "number": 109,
+        "name_urdu": "الکافرون"
+      },
+      {
+        "number": 110,
+        "name_urdu": "النصر"
+      },
+      {
+        "number": 111,
+        "name_urdu": "المسد"
+      },
+      {
+        "number": 112,
+        "name_urdu": "الاخلاص"
+      },
+      {
+        "number": 113,
+        "name_urdu": "الفلق"
+      },
+      {
+        "number": 114,
+        "name_urdu": "الناس"
+      }
+    ]
+  }

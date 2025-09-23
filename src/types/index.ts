@@ -64,3 +64,30 @@ export interface AsmaData {
   urduTranslation: string;
   englishTranslation: string;
 }
+
+
+// New interfaces for Quran data from CDN
+export interface QuranVerse {
+  id: number;
+  text: string;
+  translation: string;
+}
+
+export interface QuranChapterData {
+  id: number;
+  name: string;
+  transliteration: string;
+  translation: string;
+  type: string;
+  total_verses: number;
+  verses: QuranVerse[];
+}
+
+export interface QuranChapterNames {
+  id: number;
+  name: string;
+  transliteration: string;
+  type: string;
+  total_verses: number;
+  link: string;
+}
