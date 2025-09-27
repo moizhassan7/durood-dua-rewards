@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, Trophy, CreditCard, UploadCloud, Loader } from 'lucide-react';
 import { formatNumber } from '../utils/formatters';
-import { UserData, PayoutDetails } from '../../types';
+import { UserData } from '../../types';
 import TopNav from '../TopNav';
 import BottomNav from '../BottomNav';
-import { getMonthlyLeaders, acceptMonthlyPrize } from '../../services/firestore';
+import { getMonthlyLeaders, acceptMonthlyPrize, resetMonthlyCountsAndAnnounce } from '../../services/firestore'; // Import reset function
 
 interface MonthlyWinnersPageProps {
   user: UserData;
@@ -24,6 +24,7 @@ const MonthlyWinnersPage: React.FC<MonthlyWinnersPageProps> = ({ user, setCurren
   const [loading, setLoading] = useState(true);
   const [file, setFile] = useState<File | null>(null);
   const [payoutInProgress, setPayoutInProgress] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
 
   const fetchWinners = async () => {
     setLoading(true);
@@ -55,7 +56,9 @@ const MonthlyWinnersPage: React.FC<MonthlyWinnersPageProps> = ({ user, setCurren
     
     setPayoutInProgress(winnerId);
     try {
-      await acceptMonthlyPrize(winnerId, pointsToDeduct, file);
+      // Assuming a valid payout request ID exists or can be generated.
+      const prizePoints = pointsToDeduct; // Use current monthCount as prize points
+      await acceptMonthlyPrize(winnerId, prizePoints, file);
       alert('ادائیگی کامیابی سے مکمل ہو گئی۔');
       setFile(null); // Clear the file input
       setPayoutInProgress(null);
@@ -64,6 +67,23 @@ const MonthlyWinnersPage: React.FC<MonthlyWinnersPageProps> = ({ user, setCurren
       console.error("Failed to accept payout: ", error);
       alert('ادائیگی قبول کرنے میں کوئی مسئلہ پیش آیا۔');
       setPayoutInProgress(null);
+    }
+  };
+
+  const handleAnnounceWinners = async () => {
+    const confirmAnnounce = window.confirm('کیا آپ واقعی تمام صارفین کے ماہانہ پوائنٹس صفر کرنا چاہتے ہیں؟ فاتحین کے نام محفوظ رہیں گے۔');
+    if (confirmAnnounce) {
+      setResetting(true);
+      try {
+        await resetMonthlyCountsAndAnnounce();
+        alert('ماہانہ پوائنٹس کامیابی سے ری سیٹ کر دیے گئے ہیں۔ نیا مقابلہ شروع ہو گیا ہے۔');
+        await fetchWinners(); // Refresh the list (it will be empty/show new scores)
+      } catch (error) {
+        console.error("Failed to reset monthly counts: ", error);
+        alert('پوائنٹس ری سیٹ کرنے میں کوئی مسئلہ پیش آیا۔');
+      } finally {
+        setResetting(false);
+      }
     }
   };
 
@@ -87,6 +107,27 @@ const MonthlyWinnersPage: React.FC<MonthlyWinnersPageProps> = ({ user, setCurren
       />
       <div className="flex-grow pt-16 pb-24 px-4">
         <div className="max-w-md mx-auto">
+          {/* Announce Button Block */}
+          <div className="mb-6 bg-white rounded-2xl p-4 shadow-sm border border-rose-100">
+            <p className="text-sm text-gray-700 mb-3" dir="rtl">
+              فاتحین کو اعزاز دینے کے بعد، اگلے مقابلے کے لیے پوائنٹس ری سیٹ کریں۔
+            </p>
+            <button
+              onClick={handleAnnounceWinners}
+              disabled={resetting}
+              className="w-full bg-rose-500 text-white py-2 rounded-lg font-medium flex items-center justify-center disabled:bg-gray-400 disabled:cursor-not-allowed"
+            >
+              {resetting ? (
+                <>
+                  <Loader className="animate-spin mr-2" size={20} />
+                  <span>ری سیٹ کیا جا رہا ہے...</span>
+                </>
+              ) : (
+                <span>اعلان کریں اور ری سیٹ کریں</span>
+              )}
+            </button>
+          </div>
+          
           <div className="space-y-6">
             {monthlyLeaders.length > 0 ? (
               monthlyLeaders.slice(0, 3).map((winner, index) => (

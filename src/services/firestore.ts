@@ -1,9 +1,9 @@
 import { collection, query, orderBy, limit, getDocs, doc, addDoc, where, getDoc, updateDoc, increment, writeBatch, runTransaction, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { UserData, PayoutRequest, PayoutDetails, HadithData, VerseData } from '../types';
+// Assuming UserData, PayoutRequest, PayoutDetails, HadithData, VerseData are in '../types'
+import { UserData, PayoutRequest, PayoutDetails, HadithData, VerseData, FavoriteItem } from '../types'; // Added FavoriteItem
 import { supabase } from '../supabaseClient';
 import { PAYOUT_THRESHOLD } from '../constants';
-
 
 /**
  * Creates a new payout request document.
@@ -427,4 +427,72 @@ export async function getVerseOfTheDay(): Promise<VerseData | null> {
 export async function removeVerseOfTheDay(): Promise<void> {
   const verseDocRef = doc(db, 'verseOfTheDay', 'current');
   await deleteDoc(verseDocRef);
+}
+
+// --- New Functions for User Favorites ---
+
+/**
+ * Fetches all favorited Hadiths for a specific user.
+ * @param userId The ID of the user.
+ * @returns An array of FavoriteItem objects for Hadiths.
+ */
+export async function getFavoriteHadiths(userId: string): Promise<FavoriteItem[]> {
+  const q = query(
+    collection(db, 'favorites'),
+    where('userId', '==', userId),
+    where('type', '==', 'hadith'),
+    orderBy('dateAdded', 'desc') // Show most recent first
+  );
+  const snapshot = await getDocs(q);
+
+  const favorites: FavoriteItem[] = [];
+  snapshot.forEach((doc) => {
+    // Manually reconstruct the object to ensure HadithData/VerseData is nested under 'item'
+    const data = doc.data();
+    favorites.push({
+      id: doc.id,
+      userId: data.userId,
+      type: data.type,
+      item: data.item as HadithData, // Assuming correct type for hadith
+      dateAdded: data.dateAdded.toDate(), // Convert Firestore Timestamp to Date
+    } as FavoriteItem);
+  });
+
+  return favorites;
+}
+
+/**
+ * Fetches all favorited Verses for a specific user.
+ * @param userId The ID of the user.
+ * @returns An array of FavoriteItem objects for Verses.
+ */
+export async function getFavoriteVerses(userId: string): Promise<FavoriteItem[]> {
+  const q = query(
+    collection(db, 'favorites'),
+    where('userId', '==', userId),
+    where('type', '==', 'verse'),
+    orderBy('dateAdded', 'desc') // Show most recent first
+  );
+  const snapshot = await getDocs(q);
+
+  const favorites: FavoriteItem[] = [];
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    favorites.push({
+      id: doc.id,
+      userId: data.userId,
+      type: data.type,
+      item: data.item as VerseData, // Assuming correct type for verse
+      dateAdded: data.dateAdded.toDate(), // Convert Firestore Timestamp to Date
+    } as FavoriteItem);
+  });
+
+  return favorites;
+}
+export interface FavoriteItem {
+  id: string; // Document ID
+  userId: string;
+  type: 'hadith' | 'verse';
+  item: HadithData | VerseData;
+  dateAdded: Date;
 }

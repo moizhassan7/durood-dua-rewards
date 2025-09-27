@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 import { auth, db } from './firebaseConfig';
+// Path adjustments (changed ./ to ../ for external components and firebaseConfig)
 import LoginPage from './components/pages/LoginPage';
 import SignupPage from './components/pages/SignupPage';
 import CounterPage from './components/pages/CounterPage';
@@ -19,12 +20,16 @@ import SystemSettingsPage from './components/pages/SystemSettingsPage';
 import HadithPage from './components/pages/HadithPage';
 import VersePage from './components/pages/VersePage';
 import HadithVersePage from './components/pages/HadithVersePage';
-import QuranPage from './components/pages/QuranPage'; // New Import
+import QuranPage from './components/pages/QuranPage';
+import RulesRegulationsPage from './components/pages/RulesRegulationsPage';
+// NEW IMPORT: Add the dedicated Favorites Page
+import FavoritesPage from './components/pages/FavoritesPage'; 
 import { UserData } from './types';
 
 export default function App() {
   const [user, setUser] = useState<UserData | null>(null);
-  const [currentPage, setCurrentPage] = useState('signup');
+  // currentPage can now hold query parameters, e.g., 'favorites?list=hadith'
+  const [currentPage, setCurrentPage] = useState('signup'); 
   const [sessionCount, setSessionCount] = useState(0);
   const [isCooldown, setIsCooldown] = useState(false);
   const [rings, setRings] = useState<{ id: number }[]>([]);
@@ -166,7 +171,10 @@ export default function App() {
         : <SignupPage handleSignupSuccess={handleSignupSuccess} setCurrentPage={setCurrentPage} />;
     }
 
-    switch (currentPage) {
+    // Determine the base page name by stripping any query parameters (like ?list=hadith)
+    const basePage = currentPage.split('?')[0];
+
+    switch (basePage) {
       case 'profile':
         return <ProfileNavPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
       case 'profile-details':
@@ -179,9 +187,14 @@ export default function App() {
         return <LeaderboardsPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
       case 'hadith-verse-page':
         return <HadithVersePage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
+      // NEW CASE: Handles routing for the new FavoritesPage
+      case 'favorites':
+        return <FavoritesPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} currentPage={currentPage} />;
       case 'quran':
         return <QuranPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
-        case 'admin':
+      case 'rules-regulations':
+        return <RulesRegulationsPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
+      case 'admin':
         if (user.isAdmin) {
           return <AdminPanelPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
         }

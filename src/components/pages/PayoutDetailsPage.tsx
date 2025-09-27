@@ -87,8 +87,8 @@ const PayoutDetailsPage: React.FC<PayoutDetailsPageProps> = ({ user, setCurrentP
                     }`}
                     dir="rtl"
                   >
-                    {method === 'bank' ? 'بینک' :
-                     method === 'easypaisa' ? 'ایزی پیسا' : 'جazzCash'}
+                    {method === 'bank' ? 'Bank' :
+                     method === 'easypaisa' ? 'EasyPaisa' : 'JazzCash'}
                   </button>
                 ))}
               </div>

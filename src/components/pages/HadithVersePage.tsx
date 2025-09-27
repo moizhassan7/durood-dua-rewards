@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Share2, Bookmark, CheckCircle, Loader, X, ChevronLeft, Trash2 } from 'lucide-react';
+import { Share2, Bookmark, CheckCircle, Loader, X, ChevronLeft, Trash2, List } from 'lucide-react';
 import { UserData, HadithData, VerseData } from '../../types';
 import TopNav from '../TopNav';
 import BottomNav from '../BottomNav';
 import { getHadithOfTheDay, getVerseOfTheDay } from '../../services/firestore';
 import { collection, addDoc, getDocs, query, where, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
-import { auth } from '../../firebaseConfig';
 import AllahCalligraphy from '../../assets/allah-calligraphy.png';
 import MuhammadCalligraphy from '../../assets/muhammad-calligraphy.png';
 import asmaulNabiData from '../../data/asmaulNabi.json';
@@ -50,6 +49,44 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
   const [asmaUlNabi, setAsmaUlNabi] = useState<AsmaNabiData[] | null>(null);
   const [showAsmaNabiView, setShowAsmaNabiView] = useState(false);
 
+  // Note: showFavoriteHadithView and showFavoriteVerseView states have been removed
+
+  // A simplified function to check and set the favorite status for the current Hadith/Verse
+  const checkFavoriteStatus = async (hadithData: HadithData | null, verseData: VerseData | null) => {
+    if (!user) return;
+
+    if (hadithData) {
+      const q = query(collection(db, 'favorites'),
+        where('userId', '==', user.id),
+        where('item.hadith', '==', hadithData.hadith)
+      );
+      const hadithFavorites = await getDocs(q);
+      if (!hadithFavorites.empty) {
+        setIsHadithFavorited(true);
+        setHadithFavId(hadithFavorites.docs[0].id);
+      } else {
+        setIsHadithFavorited(false);
+        setHadithFavId(null);
+      }
+    }
+
+    if (verseData) {
+      const q = query(collection(db, 'favorites'),
+        where('userId', '==', user.id),
+        where('item.verse', '==', verseData.verse)
+      );
+      const verseFavorites = await getDocs(q);
+      if (!verseFavorites.empty) {
+        setIsVerseFavorited(true);
+        setVerseFavId(verseFavorites.docs[0].id);
+      } else {
+        setIsVerseFavorited(false);
+        setVerseFavId(null);
+      }
+    }
+  };
+
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -59,37 +96,18 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
         setHadith(hadithData);
         setVerse(verseData);
 
+        // Fetch Asma ul Husna
         const asmaHusnaResponse = await fetch('https://api.aladhan.com/v1/asmaAlHusna');
         const asmaHusnaResult = await asmaHusnaResponse.json();
         if (asmaHusnaResult.code === 200 && asmaHusnaResult.data) {
           setAsmaUlHusna(asmaHusnaResult.data);
         }
 
+        // Set Asma ul Nabi (from local data)
         setAsmaUlNabi(asmaulNabiData);
 
-        if (user && hadithData) {
-          const q = query(collection(db, 'favorites'),
-            where('userId', '==', user.id),
-            where('item.hadith', '==', hadithData.hadith)
-          );
-          const hadithFavorites = await getDocs(q);
-          if (!hadithFavorites.empty) {
-            setIsHadithFavorited(true);
-            setHadithFavId(hadithFavorites.docs[0].id);
-          }
-        }
-
-        if (user && verseData) {
-          const q = query(collection(db, 'favorites'),
-            where('userId', '==', user.id),
-            where('item.verse', '==', verseData.verse)
-          );
-          const verseFavorites = await getDocs(q);
-          if (!verseFavorites.empty) {
-            setIsVerseFavorited(true);
-            setVerseFavId(verseFavorites.docs[0].id);
-          }
-        }
+        // Check favorite status for the day's items
+        await checkFavoriteStatus(hadithData, verseData);
 
       } catch (error) {
         console.error("Failed to fetch data: ", error);
@@ -118,22 +136,23 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
 
   const handleAddRemoveFavorite = async (item: HadithData | VerseData, type: 'hadith' | 'verse') => {
     if (!user) return;
-    
-    if (type === 'hadith' && isHadithFavorited) {
-      if (hadithFavId) {
-        await deleteDoc(doc(db, 'favorites', hadithFavId));
+
+    const isFavorited = type === 'hadith' ? isHadithFavorited : isVerseFavorited;
+    const favId = type === 'hadith' ? hadithFavId : verseFavId;
+
+    if (isFavorited && favId) {
+      // Remove favorite
+      await deleteDoc(doc(db, 'favorites', favId));
+      if (type === 'hadith') {
         setIsHadithFavorited(false);
         setHadithFavId(null);
-        alert('پسندیدہ سے ہٹا دیا گیا ہے۔');
-      }
-    } else if (type === 'verse' && isVerseFavorited) {
-      if (verseFavId) {
-        await deleteDoc(doc(db, 'favorites', verseFavId));
+      } else {
         setIsVerseFavorited(false);
         setVerseFavId(null);
-        alert('پسندیدہ سے ہٹا دیا گیا ہے۔');
       }
+      alert('پسندیدہ سے ہٹا دیا گیا ہے۔');
     } else {
+      // Add favorite
       try {
         const newFavRef = await addDoc(collection(db, 'favorites'), {
           userId: user.id,
@@ -141,7 +160,7 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
           type,
           dateAdded: new Date(),
         });
-        
+
         if (type === 'hadith') {
           setIsHadithFavorited(true);
           setHadithFavId(newFavRef.id);
@@ -165,6 +184,19 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
     );
   }
 
+  // Hide main content only when Asma views are open
+  const isAnyViewOpen = showAsmaHusnaView || showAsmaNabiView;
+
+  // New functions for redirection to the main favorites page
+  const redirectToFavoriteHadith = () => {
+    // We pass a parameter to the 'favorites' page to indicate which list to show first
+    setCurrentPage('favorites?list=hadith');
+  };
+  const redirectToFavoriteVerse = () => {
+    setCurrentPage('favorites?list=verse');
+  };
+
+
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans-ar">
       <TopNav
@@ -175,9 +207,10 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
         showBackButton={true}
         backAction={() => setCurrentPage('counter')}
       />
-      <div className="flex-grow pt-16 pb-24 px-4">
+
+      <div className={`flex-grow pt-16 pb-24 px-4 ${isAnyViewOpen ? 'hidden' : ''}`}>
         <div className="max-w-xl mx-auto space-y-8">
-          {/* Action Buttons Container */}
+          {/* Action Buttons Container - Row 1 (Asma) */}
           <div className="grid grid-cols-2 gap-4">
             {/* Allah Button */}
             <motion.button
@@ -201,7 +234,34 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
             </motion.button>
           </div>
 
-          {/* Main Content */}
+          {/* New Action Buttons Container - Row 2 for Favorites (Redirection) */}
+          {user && (
+            <div className="grid grid-cols-2 gap-4">
+              {/* Favorite Hadith Button (Redirects to FavoritesPage) */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                onClick={redirectToFavoriteHadith} // Redirection
+                whileTap={{ scale: 0.95 }}
+                className="bg-green-50 rounded-xl shadow-md p-4 flex flex-col items-center justify-center border-2 border-green-200 transition-transform duration-200"
+              >
+                <List className="text-green-700" size={28} />
+                <p className="text-sm font-semibold text-green-700 mt-2">پسندیدہ احادیث</p>
+              </motion.button>
+              {/* Favorite Verse Button (Redirects to FavoritesPage) */}
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={redirectToFavoriteVerse} // Redirection
+                className="bg-blue-50 rounded-xl shadow-md p-4 flex flex-col items-center justify-center border-2 border-blue-200 transition-transform duration-200"
+              >
+                <List className="text-blue-700" size={28} />
+                <p className="text-sm font-semibold text-blue-700 mt-2">پسندیدہ آیات</p>
+              </motion.button>
+            </div>
+          )}
+
+
+          {/* Main Content (Verse and Hadith Cards) */}
           <div className="space-y-6">
             {/* Verse of the Day Card */}
             {verse && (
@@ -284,7 +344,7 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
       </div>
       <BottomNav currentPage="favorites" setCurrentPage={setCurrentPage} />
 
-      {/* Asma ul Husna View (Modal/Page) */}
+      {/* Asma ul Husna View (Modal/Page) - Logic remains same */}
       <AnimatePresence>
         {showAsmaHusnaView && (
           <motion.div
@@ -330,7 +390,7 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
         )}
       </AnimatePresence>
 
-      {/* Asma ul Nabi View (Modal/Page) */}
+      {/* Asma ul Nabi View (Modal/Page) - Logic remains same */}
       <AnimatePresence>
         {showAsmaNabiView && (
           <motion.div
