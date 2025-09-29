@@ -14,12 +14,73 @@ interface ProfileNavPageProps {
 
 const PAYOUT_THRESHOLD = 30000;
 
+// ---------------------------------------------------
+// CUSTOM DIALOG COMPONENT & STATE
+// ---------------------------------------------------
+interface DialogState {
+    show: boolean;
+    success: boolean; // Indicates success or error/warning
+    message: string;
+}
+
+const CustomDialog: React.FC<{ dialog: DialogState, onClose: () => void }> = ({ dialog, onClose }) => {
+    if (!dialog.show) return null;
+
+    const Icon = dialog.success ? CheckCircle : XCircle;
+    const colorClass = dialog.success ? 'text-green-500' : 'text-red-500';
+    const bgColorClass = dialog.success ? 'bg-green-50' : 'bg-red-50';
+    const buttonClass = dialog.success ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700';
+    
+    // Use an Exclamation mark for warnings/validation errors (optional styling change)
+    const WarningIcon = Shield;
+    const isWarning = !dialog.success && dialog.message.includes('درست رقم'); // Simple check for validation error
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4" dir="rtl">
+            <div className={`w-full max-w-sm rounded-xl shadow-2xl p-6 text-center 
+                ${isWarning ? 'bg-yellow-50' : bgColorClass} transform transition-all`}>
+                
+                {isWarning ? (
+                    <WarningIcon size={48} className="mx-auto mb-4 text-yellow-600" />
+                ) : (
+                    <Icon size={48} className={`mx-auto mb-4 ${colorClass}`} />
+                )}
+                
+                <p className="text-lg font-semibold text-gray-800 mb-4">{dialog.message}</p>
+                
+                <button
+                    onClick={onClose}
+                    className={`w-full py-2 rounded-lg font-medium text-white transition-colors 
+                        ${isWarning ? 'bg-yellow-600 hover:bg-yellow-700' : buttonClass}`}
+                >
+                    ٹھیک ہے
+                </button>
+            </div>
+        </div>
+    );
+};
+// ---------------------------------------------------
+
+
 const ProfileNavPage: React.FC<ProfileNavPageProps> = ({ user, setCurrentPage, handleLogout }) => {
   const [payoutRequests, setPayoutRequests] = useState<PayoutRequest[]>([]);
   const [requestingPayout, setRequestingPayout] = useState(false);
   const [loadingPayouts, setLoadingPayouts] = useState(true);
   const [payoutAmount, setPayoutAmount] = useState<number | ''>('');
   
+  // NEW STATE for the custom dialog
+  const [dialog, setDialog] = useState<DialogState>({
+    show: false,
+    success: false,
+    message: ''
+  });
+
+  // Function to close the dialog
+  const handleCloseDialog = () => {
+    setDialog({ show: false, success: false, message: '' });
+  };
+
+
   useEffect(() => {
     const fetchPayouts = async () => {
       if (!user?.id) return;
@@ -36,18 +97,32 @@ const ProfileNavPage: React.FC<ProfileNavPageProps> = ({ user, setCurrentPage, h
     fetchPayouts();
   }, [user]);
 
+  // REFACTORED: Use Custom Dialog for Payout Request
   const handlePayoutRequest = async () => {
+    // 1. Input Validation Check
     if (!user || !payoutAmount || payoutAmount < PAYOUT_THRESHOLD || payoutAmount > user.totalCount) {
-        alert('براہ کرم ادائیگی کی درست رقم داخل کریں۔');
-        return;
+      setDialog({
+        show: true,
+        success: false, // Treat as a warning/error
+        message: 'براہ کرم ادائیگی کی درست رقم داخل کریں۔ رقم کم از کم 30,000 اور آپ کے کل پوائنٹس سے زیادہ نہیں ہونی چاہیے.',
+      });
+      return;
     }
+
     setRequestingPayout(true);
     try {
       await requestPayout(user.id, user.name, payoutAmount);
-      alert('آپ کی ادائیگی کی درخواست بھیج دی گئی ہے۔');
       
+      // Show Success Dialog
+      setDialog({
+        show: true,
+        success: true,
+        message: 'آپ کی ادائیگی کی درخواست کامیابی سے بھیج دی گئی ہے۔',
+      });
+      
+      // Optimistically update the list
       setPayoutRequests(prev => [{
-        id: 'new_temp_id',
+        id: 'new_temp_id', // Use a UUID generator in a real app
         userId: user.id,
         userName: user.name,
         pointsAtRequest: payoutAmount,
@@ -55,9 +130,15 @@ const ProfileNavPage: React.FC<ProfileNavPageProps> = ({ user, setCurrentPage, h
         requestDate: new Date(),
       } as PayoutRequest, ...prev]);
       setPayoutAmount('');
+      
     } catch (error) {
       console.error("Failed to send payout request: ", error);
-      alert('درخواست بھیجنے میں کوئی مسئلہ پیش آیا۔');
+      // Show Error Dialog
+      setDialog({
+        show: true,
+        success: false,
+        message: 'درخواست بھیجنے میں کوئی مسئلہ پیش آیا۔ دوبارہ کوشش کریں یا ایڈمن سے رابطہ کریں۔',
+      });
     } finally {
       setRequestingPayout(false);
     }
@@ -85,7 +166,9 @@ const ProfileNavPage: React.FC<ProfileNavPageProps> = ({ user, setCurrentPage, h
           <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
             <div className="flex items-center mb-6">
               <div className="w-16 h-16 rounded-full bg-gradient-to-r from-green-100 to-emerald-200 flex items-center justify-center mr-4">
-                <span className="text-2xl font-bold text-green-700">م</span>
+                <span className="text-2xl font-bold text-green-700">
+                    {user.name ? user.name.charAt(0) : '؟'}
+                </span>
               </div>
               <div>
                 <h2 className="text-lg font-bold text-gray-900" dir="rtl">{user.name}</h2>
@@ -232,6 +315,9 @@ const ProfileNavPage: React.FC<ProfileNavPageProps> = ({ user, setCurrentPage, h
         </div>
       </div>
       <BottomNav currentPage="profile" setCurrentPage={setCurrentPage} />
+      
+      {/* RENDER THE CUSTOM DIALOG */}
+      <CustomDialog dialog={dialog} onClose={handleCloseDialog} />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Share2, Bookmark, CheckCircle, Loader, X, ChevronLeft, Trash2, List } from 'lucide-react';
 import { UserData, HadithData, VerseData } from '../../types';
@@ -11,6 +11,7 @@ import AllahCalligraphy from '../../assets/allah-calligraphy.png';
 import MuhammadCalligraphy from '../../assets/muhammad-calligraphy.png';
 import asmaulNabiData from '../../data/asmaulNabi.json';
 
+// (Interface definitions remain the same)
 interface HadithVersePageProps {
   user: UserData;
   setCurrentPage: (page: string) => void;
@@ -34,162 +35,213 @@ interface AsmaNabiData {
   meaning_urdu: string;
 }
 
+// ---------------------------------------------------
+// NEW COMPONENT: Skeleton Loader for Hadith/Verse Card
+// This makes the card structure load instantly.
+// ---------------------------------------------------
+const LoadingCard: React.FC<{ title: string, color: string }> = ({ title, color }) => (
+    <div 
+        className="bg-gray-50 rounded-2xl shadow-md p-6 border-2 border-gray-100 animate-pulse"
+        dir="rtl"
+    >
+        <div className="flex items-center justify-between mb-4">
+            <h2 className={`font-bold text-xl text-${color}-800`}>{title}</h2>
+            <div className="flex space-x-2">
+                <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
+                <div className="h-8 w-8 bg-gray-200 rounded-full"></div>
+            </div>
+        </div>
+        <div className="space-y-3">
+            <div className="h-4 bg-gray-200 rounded w-full"></div>
+            <div className="h-4 bg-gray-200 rounded w-11/12"></div>
+            <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+        </div>
+        <div className="h-3 bg-gray-200 rounded w-1/4 mt-6 ml-auto"></div>
+    </div>
+);
+
+
 const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage, handleLogout }) => {
   const [hadith, setHadith] = useState<HadithData | null>(null);
   const [verse, setVerse] = useState<VerseData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loadingDaily, setLoadingDaily] = useState(true); // Renamed state for clarity
+
   const [isHadithFavorited, setIsHadithFavorited] = useState(false);
   const [isVerseFavorited, setIsVerseFavorited] = useState(false);
   const [hadithFavId, setHadithFavId] = useState<string | null>(null);
   const [verseFavId, setVerseFavId] = useState<string | null>(null);
 
   const [asmaUlHusna, setAsmaUlHusna] = useState<AsmaHusnaData[] | null>(null);
+  const [loadingAsmaHusna, setLoadingAsmaHusna] = useState(false); // Used in lazy load
   const [showAsmaHusnaView, setShowAsmaHusnaView] = useState(false);
 
   const [asmaUlNabi, setAsmaUlNabi] = useState<AsmaNabiData[] | null>(null);
+  const [loadingAsmaNabi, setLoadingAsmaNabi] = useState(false); // Used in lazy load
   const [showAsmaNabiView, setShowAsmaNabiView] = useState(false);
 
-  // Note: showFavoriteHadithView and showFavoriteVerseView states have been removed
-
-  // A simplified function to check and set the favorite status for the current Hadith/Verse
-  const checkFavoriteStatus = async (hadithData: HadithData | null, verseData: VerseData | null) => {
+  // checkFavoriteStatus (remains the same and is wrapped in useCallback)
+  const checkFavoriteStatus = useCallback(async (hadithData: HadithData | null, verseData: VerseData | null) => {
     if (!user) return;
-
+    // ... (Your Firestore favorite check logic remains here) ...
+    
     if (hadithData) {
-      const q = query(collection(db, 'favorites'),
-        where('userId', '==', user.id),
-        where('item.hadith', '==', hadithData.hadith)
-      );
-      const hadithFavorites = await getDocs(q);
-      if (!hadithFavorites.empty) {
-        setIsHadithFavorited(true);
-        setHadithFavId(hadithFavorites.docs[0].id);
-      } else {
-        setIsHadithFavorited(false);
-        setHadithFavId(null);
-      }
+        const q = query(collection(db, 'favorites'),
+            where('userId', '==', user.id),
+            where('item.hadith', '==', hadithData.hadith)
+        );
+        const hadithFavorites = await getDocs(q);
+        if (!hadithFavorites.empty) {
+            setIsHadithFavorited(true);
+            setHadithFavId(hadithFavorites.docs[0].id);
+        } else {
+            setIsHadithFavorited(false);
+            setHadithFavId(null);
+        }
     }
 
     if (verseData) {
-      const q = query(collection(db, 'favorites'),
-        where('userId', '==', user.id),
-        where('item.verse', '==', verseData.verse)
-      );
-      const verseFavorites = await getDocs(q);
-      if (!verseFavorites.empty) {
-        setIsVerseFavorited(true);
-        setVerseFavId(verseFavorites.docs[0].id);
-      } else {
-        setIsVerseFavorited(false);
-        setVerseFavId(null);
-      }
+        const q = query(collection(db, 'favorites'),
+            where('userId', '==', user.id),
+            where('item.verse', '==', verseData.verse)
+        );
+        const verseFavorites = await getDocs(q);
+        if (!verseFavorites.empty) {
+            setIsVerseFavorited(true);
+            setVerseFavId(verseFavorites.docs[0].id);
+        } else {
+            setIsVerseFavorited(false);
+            setVerseFavId(null);
+        }
     }
-  };
+  }, [user]);
 
-
+  // PRIMARY useEffect: Only for Hadith, Verse, and Favorite Status
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
+      setLoadingDaily(true);
       try {
-        const hadithData = await getHadithOfTheDay();
-        const verseData = await getVerseOfTheDay();
+        // Fetch daily items concurrently
+        const [hadithData, verseData] = await Promise.all([
+          getHadithOfTheDay(),
+          getVerseOfTheDay()
+        ]);
+        
         setHadith(hadithData);
         setVerse(verseData);
 
-        // Fetch Asma ul Husna
-        const asmaHusnaResponse = await fetch('https://api.aladhan.com/v1/asmaAlHusna');
-        const asmaHusnaResult = await asmaHusnaResponse.json();
-        if (asmaHusnaResult.code === 200 && asmaHusnaResult.data) {
-          setAsmaUlHusna(asmaHusnaResult.data);
-        }
-
-        // Set Asma ul Nabi (from local data)
-        setAsmaUlNabi(asmaulNabiData);
-
-        // Check favorite status for the day's items
         await checkFavoriteStatus(hadithData, verseData);
 
       } catch (error) {
-        console.error("Failed to fetch data: ", error);
+        console.error("Failed to fetch daily data: ", error);
       } finally {
-        setLoading(false);
+        setLoadingDaily(false); // Only set loading to false after daily data is here
       }
     };
     fetchData();
-  }, [user]);
+    // Setting Asma ul Nabi/Husna states here is removed for lazy loading (as done previously)
+  }, [checkFavoriteStatus]);
+
+
+  // LAZY LOAD: Asma ul Husna
+  useEffect(() => {
+    if (showAsmaHusnaView && !asmaUlHusna && !loadingAsmaHusna) {
+      const fetchAsmaHusna = async () => {
+        setLoadingAsmaHusna(true);
+        try {
+          const asmaHusnaResponse = await fetch('https://api.aladhan.com/v1/asmaAlHusna');
+          const asmaHusnaResult = await asmaHusnaResponse.json();
+          if (asmaHusnaResult.code === 200 && asmaHusnaResult.data) {
+            setAsmaUlHusna(asmaHusnaResult.data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch Asma ul Husna: ", error);
+        } finally {
+          setLoadingAsmaHusna(false);
+        }
+      };
+      fetchAsmaHusna();
+    }
+  }, [showAsmaHusnaView, asmaUlHusna, loadingAsmaHusna]);
+
+
+  // LAZY LOAD: Asma ul Nabi (Local Data)
+  useEffect(() => {
+    if (showAsmaNabiView && !asmaUlNabi && !loadingAsmaNabi) {
+        setLoadingAsmaNabi(true);
+        // Simulate a small delay for a real-world scenario or large local file
+        setTimeout(() => {
+            setAsmaUlNabi(asmaulNabiData as AsmaNabiData[]); // Set from the imported JSON
+            setLoadingAsmaNabi(false);
+        }, 50); 
+    }
+  }, [showAsmaNabiView, asmaUlNabi, loadingAsmaNabi]);
+
 
   const handleShare = async (title: string, text: string) => {
+    // ... (handleShare implementation remains here) ...
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title,
-          text,
-        });
-        alert('کامیابی سے شیئر کر دیا گیا');
-      } catch (error) {
-        console.error("Error sharing: ", error);
-      }
+        try {
+            await navigator.share({
+                title,
+                text,
+            });
+            alert('کامیابی سے شیئر کر دیا گیا');
+        } catch (error) {
+            console.error("Error sharing: ", error);
+        }
     } else {
-      alert("آپ کا براؤزر شیئرنگ کو سپورٹ نہیں کرتا۔");
+        alert("آپ کا براؤزر شیئرنگ کو سپورٹ نہیں کرتا۔");
     }
   };
 
   const handleAddRemoveFavorite = async (item: HadithData | VerseData, type: 'hadith' | 'verse') => {
+    // ... (handleAddRemoveFavorite implementation remains here) ...
     if (!user) return;
 
     const isFavorited = type === 'hadith' ? isHadithFavorited : isVerseFavorited;
     const favId = type === 'hadith' ? hadithFavId : verseFavId;
 
     if (isFavorited && favId) {
-      // Remove favorite
-      await deleteDoc(doc(db, 'favorites', favId));
-      if (type === 'hadith') {
-        setIsHadithFavorited(false);
-        setHadithFavId(null);
-      } else {
-        setIsVerseFavorited(false);
-        setVerseFavId(null);
-      }
-      alert('پسندیدہ سے ہٹا دیا گیا ہے۔');
-    } else {
-      // Add favorite
-      try {
-        const newFavRef = await addDoc(collection(db, 'favorites'), {
-          userId: user.id,
-          item,
-          type,
-          dateAdded: new Date(),
-        });
-
+        await deleteDoc(doc(db, 'favorites', favId));
         if (type === 'hadith') {
-          setIsHadithFavorited(true);
-          setHadithFavId(newFavRef.id);
+            setIsHadithFavorited(false);
+            setHadithFavId(null);
         } else {
-          setIsVerseFavorited(true);
-          setVerseFavId(newFavRef.id);
+            setIsVerseFavorited(false);
+            setVerseFavId(null);
         }
-        alert('پسندیدہ میں شامل کر دیا گیا ہے۔');
-      } catch (error) {
-        console.error("Failed to add to favorites: ", error);
-        alert('پسندیدہ میں شامل کرنے میں کوئی مسئلہ پیش آیا۔');
-      }
+        alert('پسندیدہ سے ہٹا دیا گیا ہے۔');
+    } else {
+        try {
+            const newFavRef = await addDoc(collection(db, 'favorites'), {
+                userId: user.id,
+                item,
+                type,
+                dateAdded: new Date(),
+            });
+
+            if (type === 'hadith') {
+                setIsHadithFavorited(true);
+                setHadithFavId(newFavRef.id);
+            } else {
+                setIsVerseFavorited(true);
+                setVerseFavId(newFavRef.id);
+            }
+            alert('پسندیدہ میں شامل کر دیا گیا ہے۔');
+        } catch (error) {
+            console.error("Failed to add to favorites: ", error);
+            alert('پسندیدہ میں شامل کرنے میں کوئی مسئلہ پیش آیا۔');
+        }
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-gray-50">
-        <Loader className="animate-spin text-green-700" size={48} />
-      </div>
-    );
-  }
 
-  // Hide main content only when Asma views are open
+  // *** REMOVED: The full-screen loading condition is now gone! ***
+  // if (loading) { return (...) }
+
   const isAnyViewOpen = showAsmaHusnaView || showAsmaNabiView;
 
-  // New functions for redirection to the main favorites page
   const redirectToFavoriteHadith = () => {
-    // We pass a parameter to the 'favorites' page to indicate which list to show first
     setCurrentPage('favorites?list=hadith');
   };
   const redirectToFavoriteVerse = () => {
@@ -210,9 +262,9 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
 
       <div className={`flex-grow pt-16 pb-24 px-4 ${isAnyViewOpen ? 'hidden' : ''}`}>
         <div className="max-w-xl mx-auto space-y-8">
-          {/* Action Buttons Container - Row 1 (Asma) */}
+          
+          {/* Action Buttons Container (Loads Instantly) */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Allah Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               onClick={() => setShowAsmaHusnaView(true)}
@@ -222,7 +274,6 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
               <img src={AllahCalligraphy} alt="ALLAH" className="h-14 w-auto mb-2" />
               <p className="text-sm font-semibold text-gray-700">اسماء الحسنیٰ</p>
             </motion.button>
-            {/* Muhammad SAW Button */}
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -234,24 +285,21 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
             </motion.button>
           </div>
 
-          {/* New Action Buttons Container - Row 2 for Favorites (Redirection) */}
           {user && (
             <div className="grid grid-cols-2 gap-4">
-              {/* Favorite Hadith Button (Redirects to FavoritesPage) */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
-                onClick={redirectToFavoriteHadith} // Redirection
+                onClick={redirectToFavoriteHadith}
                 whileTap={{ scale: 0.95 }}
                 className="bg-green-50 rounded-xl shadow-md p-4 flex flex-col items-center justify-center border-2 border-green-200 transition-transform duration-200"
               >
                 <List className="text-green-700" size={28} />
                 <p className="text-sm font-semibold text-green-700 mt-2">پسندیدہ احادیث</p>
               </motion.button>
-              {/* Favorite Verse Button (Redirects to FavoritesPage) */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={redirectToFavoriteVerse} // Redirection
+                onClick={redirectToFavoriteVerse}
                 className="bg-blue-50 rounded-xl shadow-md p-4 flex flex-col items-center justify-center border-2 border-blue-200 transition-transform duration-200"
               >
                 <List className="text-blue-700" size={28} />
@@ -263,8 +311,11 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
 
           {/* Main Content (Verse and Hadith Cards) */}
           <div className="space-y-6">
+            
             {/* Verse of the Day Card */}
-            {verse && (
+            {loadingDaily ? (
+              <LoadingCard title="آج کی آیت" color="blue" />
+            ) : verse ? (
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -273,6 +324,7 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
               >
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-bold text-xl text-blue-800">آج کی آیت</h2>
+                  {/* ... (Actions) ... */}
                   <div className="flex space-x-2">
                     <button
                       onClick={() => handleAddRemoveFavorite(verse, 'verse')}
@@ -296,10 +348,12 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
                 <p className="text-gray-600 text-sm italic">{verse.urduTranslation}</p>
                 <p className="text-gray-400 text-xs mt-4 text-left">حوالہ: {verse.reference}</p>
               </motion.div>
-            )}
+            ) : null}
 
             {/* Hadith of the Day Card */}
-            {hadith && (
+            {loadingDaily ? (
+                <LoadingCard title="آج کی حدیث" color="green" />
+            ) : hadith ? (
               <motion.div
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -309,6 +363,7 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
               >
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="font-bold text-xl text-green-800">آج کی حدیث</h2>
+                  {/* ... (Actions) ... */}
                   <div className="flex space-x-2">
                     <button
                       onClick={() => handleAddRemoveFavorite(hadith, 'hadith')}
@@ -332,19 +387,20 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
                 <p className="text-gray-600 text-sm italic">{hadith.urduTranslation}</p>
                 <p className="text-gray-400 text-xs mt-4 text-left">حوالہ: {hadith.reference}</p>
               </motion.div>
-            )}
+            ) : null}
 
-            {!hadith && !verse && (
-              <div className="text-center py-10" dir="rtl">
-                <p className="text-gray-500">آج کی حدیث یا آیت دستیاب نہیں ہے۔</p>
-              </div>
+            {/* Show error/not available message only if loading is complete and both are null */}
+            {!loadingDaily && !hadith && !verse && (
+                <div className="text-center py-10" dir="rtl">
+                    <p className="text-gray-500">آج کی حدیث یا آیت دستیاب نہیں ہے۔</p>
+                </div>
             )}
           </div>
         </div>
       </div>
       <BottomNav currentPage="favorites" setCurrentPage={setCurrentPage} />
 
-      {/* Asma ul Husna View (Modal/Page) - Logic remains same */}
+      {/* Asma ul Husna/Nabi views (Modal/Page) - Logic remains same */}
       <AnimatePresence>
         {showAsmaHusnaView && (
           <motion.div
@@ -365,7 +421,11 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
                   <X size={24} />
                 </button>
               </div>
-              {asmaUlHusna ? (
+              {loadingAsmaHusna ? ( 
+                <div className="flex justify-center items-center py-10">
+                  <Loader className="animate-spin text-blue-700" size={32} />
+                </div>
+              ) : asmaUlHusna ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
                   {asmaUlHusna.map((name) => (
                     <motion.div
@@ -390,7 +450,6 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
         )}
       </AnimatePresence>
 
-      {/* Asma ul Nabi View (Modal/Page) - Logic remains same */}
       <AnimatePresence>
         {showAsmaNabiView && (
           <motion.div
@@ -411,7 +470,11 @@ const HadithVersePage: React.FC<HadithVersePageProps> = ({ user, setCurrentPage,
                   <X size={24} />
                 </button>
               </div>
-              {asmaUlNabi ? (
+              {loadingAsmaNabi ? ( 
+                <div className="flex justify-center items-center py-10">
+                  <Loader className="animate-spin text-green-700" size={32} />
+                </div>
+              ) : asmaUlNabi ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
                   {asmaUlNabi.map((name) => (
                     <motion.div

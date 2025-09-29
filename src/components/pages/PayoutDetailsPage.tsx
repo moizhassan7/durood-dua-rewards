@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { CreditCard, Loader } from 'lucide-react';
+import { CreditCard, Loader, CheckCircle, XCircle } from 'lucide-react'; // Added XCircle for error
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { UserData, PayoutDetails } from '../../types';
@@ -12,6 +12,41 @@ interface PayoutDetailsPageProps {
   handleLogout: () => void;
 }
 
+// ---------------------------------------------------
+// NEW COMPONENT: Custom Dialog/Modal
+// ---------------------------------------------------
+interface DialogState {
+    show: boolean;
+    success: boolean;
+    message: string;
+}
+
+const CustomDialog: React.FC<{ dialog: DialogState, onClose: () => void }> = ({ dialog, onClose }) => {
+    if (!dialog.show) return null;
+
+    const Icon = dialog.success ? CheckCircle : XCircle;
+    const colorClass = dialog.success ? 'text-green-500' : 'text-red-500';
+    const bgColorClass = dialog.success ? 'bg-green-50' : 'bg-red-50';
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4" dir="rtl">
+            <div className={`w-full max-w-sm rounded-xl shadow-2xl p-6 text-center ${bgColorClass} transform transition-all`}>
+                <Icon size={48} className={`mx-auto mb-4 ${colorClass}`} />
+                <p className="text-lg font-semibold text-gray-800 mb-4">{dialog.message}</p>
+                <button
+                    onClick={onClose}
+                    className={`w-full py-2 rounded-lg font-medium text-white transition-colors 
+                        ${dialog.success ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+                >
+                    ٹھیک ہے
+                </button>
+            </div>
+        </div>
+    );
+};
+// ---------------------------------------------------
+
+
 const PayoutDetailsPage: React.FC<PayoutDetailsPageProps> = ({ user, setCurrentPage, handleLogout }) => {
   const [payoutDetails, setPayoutDetails] = useState<PayoutDetails>({
     accountName: '',
@@ -20,6 +55,13 @@ const PayoutDetailsPage: React.FC<PayoutDetailsPageProps> = ({ user, setCurrentP
     method: 'bank'
   });
   const [loading, setLoading] = useState(true);
+  
+  // NEW STATE for the custom dialog
+  const [dialog, setDialog] = useState<DialogState>({
+    show: false,
+    success: false,
+    message: ''
+  });
 
   useEffect(() => {
     const fetchPayoutDetails = async () => {
@@ -31,9 +73,11 @@ const PayoutDetailsPage: React.FC<PayoutDetailsPageProps> = ({ user, setCurrentP
       const userDoc = await getDoc(userDocRef);
       if (userDoc.exists()) {
         const userData = userDoc.data();
-        if (userData.payout) {
-          setPayoutDetails(userData.payout as PayoutDetails);
-        }
+        // Use default empty object if payout is not set to prevent errors
+        setPayoutDetails({ 
+            ...payoutDetails, 
+            ...(userData.payout as PayoutDetails) 
+        });
       }
       setLoading(false);
     };
@@ -50,15 +94,45 @@ const PayoutDetailsPage: React.FC<PayoutDetailsPageProps> = ({ user, setCurrentP
         payout: payoutDetails,
       }, { merge: true });
 
-      alert('تفصیلات محفوظ کر دی گئیں!');
-      setCurrentPage('profile');
+      // Show Success Dialog
+      setDialog({
+        show: true,
+        success: true,
+        message: 'تفصیلات کامیابی سے محفوظ کر دی گئیں!',
+      });
+      
     } catch (error) {
       console.error("Error saving payout details: ", error);
-      alert('تفصیلات محفوظ کرنے میں کوئی مسئلہ پیش آیا۔');
+      // Show Error Dialog
+      setDialog({
+        show: true,
+        success: false,
+        message: 'تفصیلات محفوظ کرنے میں کوئی مسئلہ پیش آیا۔',
+      });
     } finally {
       setLoading(false);
     }
   };
+
+  // Function to close the dialog and handle navigation
+  const handleCloseDialog = () => {
+    setDialog({ show: false, success: false, message: '' });
+    // Navigate to the profile page only on successful save
+    if (dialog.success) {
+        setCurrentPage('profile');
+    }
+  };
+
+
+  // Custom Loader while fetching initial data
+  if (loading && !dialog.show) {
+    return (
+        <div className="flex justify-center items-center min-h-screen bg-gray-50">
+            <Loader className="animate-spin text-green-700" size={48} />
+        </div>
+    );
+  }
+
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -70,7 +144,9 @@ const PayoutDetailsPage: React.FC<PayoutDetailsPageProps> = ({ user, setCurrentP
         showBackButton={true}
         backAction={() => setCurrentPage('profile')}
       />
-      <div className="flex-grow pt-16 pb-24 px-4">
+      
+      {/* Disable input fields while loading (saving) */}
+      <div className={`flex-grow pt-16 pb-24 px-4 ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
         <div className="max-w-md mx-auto">
           <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
             <div className="space-y-4">
@@ -88,11 +164,12 @@ const PayoutDetailsPage: React.FC<PayoutDetailsPageProps> = ({ user, setCurrentP
                     dir="rtl"
                   >
                     {method === 'bank' ? 'Bank' :
-                     method === 'easypaisa' ? 'EasyPaisa' : 'JazzCash'}
+                      method === 'easypaisa' ? 'EasyPaisa' : 'JazzCash'}
                   </button>
                 ))}
               </div>
               <div className="space-y-3">
+                {/* Account Name Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1" dir="rtl">
                     اکاؤنٹ ہولڈر کا نام
@@ -105,6 +182,7 @@ const PayoutDetailsPage: React.FC<PayoutDetailsPageProps> = ({ user, setCurrentP
                     placeholder="محمد احمد"
                   />
                 </div>
+                {/* Account Number Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1" dir="rtl">
                     اکاؤنٹ نمبر / موبائل نمبر
@@ -117,6 +195,7 @@ const PayoutDetailsPage: React.FC<PayoutDetailsPageProps> = ({ user, setCurrentP
                     placeholder={payoutDetails.method === 'bank' ? 'XXXX-XXXX-XXXX-1234' : '0300-XXXXXXX'}
                   />
                 </div>
+                {/* CNIC Field */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1" dir="rtl">
                     شناختی کارڈ نمبر (CNIC)
@@ -133,7 +212,7 @@ const PayoutDetailsPage: React.FC<PayoutDetailsPageProps> = ({ user, setCurrentP
               <button
                 onClick={handleSaveDetails}
                 disabled={loading}
-                className="w-full mt-4 bg-gradient-to-r from-green-600 to-emerald-700 text-white py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full mt-4 bg-gradient-to-r from-green-600 to-emerald-700 text-white py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {loading ? <Loader className="animate-spin" size={24} /> : 'تفصیلات محفوظ کریں'}
               </button>
@@ -141,7 +220,11 @@ const PayoutDetailsPage: React.FC<PayoutDetailsPageProps> = ({ user, setCurrentP
           </div>
         </div>
       </div>
+      
       <BottomNav currentPage="profile" setCurrentPage={setCurrentPage} />
+      
+      {/* RENDER THE CUSTOM DIALOG */}
+      <CustomDialog dialog={dialog} onClose={handleCloseDialog} />
     </div>
   );
 };

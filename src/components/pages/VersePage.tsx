@@ -1,9 +1,8 @@
-// components/pages/VersePage.tsx
 import React, { useState, useEffect } from 'react';
 import { UserData, VerseData } from '../../types';
 import TopNav from '../TopNav';
 import BottomNav from '../BottomNav';
-import { Book, Loader } from 'lucide-react';
+import { Book, Loader, CheckCircle, XCircle } from 'lucide-react';
 import { addVerseOfTheDay, getVerseOfTheDay, removeVerseOfTheDay } from '../../services/firestore';
 
 interface VersePageProps {
@@ -12,12 +11,100 @@ interface VersePageProps {
   handleLogout: () => void;
 }
 
+// ---------------------------------------------------
+// CUSTOM DIALOG COMPONENTS & STATE
+// (Reused from HadithPage for consistency)
+// ---------------------------------------------------
+
+// 1. Notification Dialog State (for success/error/validation)
+interface NotificationState {
+    show: boolean;
+    success: boolean; // True for success, False for error/validation
+    message: string;
+}
+
+// 2. Confirmation Dialog State
+interface ConfirmationState {
+    show: boolean;
+    action: 'remove';
+}
+
+const NotificationDialog: React.FC<{ dialog: NotificationState, onClose: () => void }> = ({ dialog, onClose }) => {
+    if (!dialog.show) return null;
+
+    const Icon = dialog.success ? CheckCircle : XCircle;
+    const colorClass = dialog.success ? 'text-green-500' : 'text-red-500';
+    const bgColorClass = dialog.success ? 'bg-green-50' : 'bg-red-50';
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4" dir="rtl">
+            <div className={`w-full max-w-sm rounded-xl shadow-2xl p-6 text-center ${bgColorClass} transform transition-all`}>
+                <Icon size={48} className={`mx-auto mb-4 ${colorClass}`} />
+                <p className="text-lg font-semibold text-gray-800 mb-4">{dialog.message}</p>
+                <button
+                    onClick={onClose}
+                    className={`w-full py-2 rounded-lg font-medium text-white transition-colors 
+                        ${dialog.success ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
+                >
+                    ٹھیک ہے
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const ConfirmationDialog: React.FC<{ 
+    dialog: ConfirmationState, 
+    onConfirm: () => void, 
+    onCancel: () => void 
+}> = ({ dialog, onConfirm, onCancel }) => {
+    if (!dialog.show) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 p-4" dir="rtl">
+            <div className="w-full max-w-sm bg-white rounded-xl shadow-2xl p-6 text-center">
+                <XCircle size={48} className="mx-auto mb-4 text-red-500" />
+                <h3 className="text-xl font-bold text-gray-900 mb-2">تصدیق کریں</h3>
+                <p className="text-gray-700 mb-6">
+                    کیا آپ واقعی **آج کی آیت** ہٹانا چاہتے ہیں؟ یہ عمل مستقل ہوگا۔
+                </p>
+                <div className="flex justify-around space-x-4">
+                    <button
+                        onClick={onCancel}
+                        className="flex-1 py-2 rounded-lg font-medium bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors"
+                    >
+                        منسوخ کریں
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        className="flex-1 py-2 rounded-lg font-medium text-white transition-colors bg-red-600 hover:bg-red-700"
+                    >
+                        ہٹائیں
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+// ---------------------------------------------------
+
+
 const VersePage: React.FC<VersePageProps> = ({ user, setCurrentPage, handleLogout }) => {
   const [verse, setVerse] = useState('');
   const [urduTranslation, setUrduTranslation] = useState('');
   const [reference, setReference] = useState('');
   const [loading, setLoading] = useState(false);
   const [isVerseSet, setIsVerseSet] = useState(false);
+  
+  // NEW STATES
+  const [notification, setNotification] = useState<NotificationState>({ show: false, success: false, message: '' });
+  const [confirmation, setConfirmation] = useState<ConfirmationState>({ show: false, action: 'remove' });
+
+  // Dialog Close Handler
+  const handleCloseDialog = () => {
+      setNotification({ show: false, success: false, message: '' });
+  };
+
 
   const fetchVerse = async () => {
     setLoading(true);
@@ -42,42 +129,75 @@ const VersePage: React.FC<VersePageProps> = ({ user, setCurrentPage, handleLogou
     fetchVerse();
   }, []);
 
+  // REFACTORED: Use Custom Dialog
   const handleAddVerse = async () => {
     if (!verse || !urduTranslation || !reference) {
-      alert('براہ کرم تمام فیلڈز پُر کریں۔');
+      setNotification({
+          show: true,
+          success: false,
+          message: 'براہ کرم آیت، ترجمہ، اور حوالہ سمیت تمام فیلڈز پُر کریں۔'
+      });
       return;
     }
     setLoading(true);
     try {
       await addVerseOfTheDay(verse, urduTranslation, reference);
-      alert(isVerseSet ? 'آیت کامیابی سے تبدیل کر دی گئی ہے۔' : 'آیت کامیابی سے شامل کر دی گئی ہے۔');
+      
+      setNotification({
+          show: true,
+          success: true,
+          message: isVerseSet ? 'آیت کامیابی سے تبدیل کر دی گئی ہے۔' : 'آیت کامیابی سے شامل کر دی گئی ہے۔'
+      });
       setIsVerseSet(true);
     } catch (error) {
       console.error("Failed to add Verse: ", error);
-      alert('آیت شامل کرنے میں کوئی مسئلہ پیش آیا۔');
+      setNotification({
+          show: true,
+          success: false,
+          message: 'آیت شامل کرنے میں کوئی مسئلہ پیش آیا۔'
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleRemoveVerse = async () => {
-    const confirmRemove = window.confirm('کیا آپ واقعی آج کی آیت ہٹانا چاہتے ہیں؟');
-    if (!confirmRemove) return;
+  // Handler to show confirmation dialog
+  const handleRemoveClick = () => {
+    setConfirmation({ show: true, action: 'remove' });
+  };
+
+  // REFACTORED: Confirmation handler for removal
+  const handleRemoveVerseConfirm = async () => {
+    // Close the confirmation dialog
+    setConfirmation({ show: false, action: 'remove' });
+    
     setLoading(true);
     try {
       await removeVerseOfTheDay();
-      alert('آیت کامیابی سے ہٹا دی گئی ہے۔');
+      
+      setNotification({
+          show: true,
+          success: true,
+          message: 'آیت کامیابی سے ہٹا دی گئی ہے۔'
+      });
+      
+      // Clear fields and state
       setVerse('');
       setUrduTranslation('');
       setReference('');
       setIsVerseSet(false);
     } catch (error) {
       console.error("Failed to remove Verse: ", error);
-      alert('آیت ہٹانے میں کوئی مسئلہ پیش آیا۔');
+      setNotification({
+          show: true,
+          success: false,
+          message: 'آیت ہٹانے میں کوئی مسئلہ پیش آیا۔'
+      });
     } finally {
       setLoading(false);
     }
   };
+
 
   if (loading) {
     return (
@@ -137,7 +257,7 @@ const VersePage: React.FC<VersePageProps> = ({ user, setCurrentPage, handleLogou
               <button
                 onClick={handleAddVerse}
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-green-600 to-emerald-700 text-white py-2.5 rounded-lg font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-green-600 to-emerald-700 text-white py-2.5 rounded-lg font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
               >
                 {loading ? (
                   <>
@@ -152,9 +272,9 @@ const VersePage: React.FC<VersePageProps> = ({ user, setCurrentPage, handleLogou
               </button>
               {isVerseSet && (
                 <button
-                  onClick={handleRemoveVerse}
+                  onClick={handleRemoveClick}
                   disabled={loading}
-                  className="w-full bg-red-100 text-red-700 py-2.5 rounded-lg font-medium hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                  className="w-full bg-red-100 text-red-700 py-2.5 rounded-lg font-medium hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2 flex items-center justify-center"
                 >
                   {loading ? (
                     <>
@@ -171,6 +291,14 @@ const VersePage: React.FC<VersePageProps> = ({ user, setCurrentPage, handleLogou
         </div>
       </div>
       <BottomNav currentPage="admin" setCurrentPage={setCurrentPage} />
+      
+      {/* RENDER CUSTOM DIALOGS */}
+      <NotificationDialog dialog={notification} onClose={handleCloseDialog} />
+      <ConfirmationDialog 
+          dialog={confirmation}
+          onConfirm={handleRemoveVerseConfirm}
+          onCancel={() => setConfirmation({ show: false, action: 'remove' })}
+      />
     </div>
   );
 };
