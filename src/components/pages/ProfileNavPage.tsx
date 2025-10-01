@@ -310,7 +310,6 @@ const ProfileNavPage: React.FC<ProfileNavPageProps> = ({ user, setCurrentPage, h
             </button>
             <p className="text-xs text-gray-400" dir="ltr">
               Developed by Moiz Hassan. <br/>
-              If you are facing any issue you can tell me directly, by sending whatsapp message on 03184902119
             </p>
           </div>
         </div>

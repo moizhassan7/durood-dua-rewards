@@ -91,3 +91,11 @@ export interface QuranChapterNames {
   total_verses: number;
   link: string;
 }
+
+export interface AnnouncementData {
+  id: string;
+  title: string;
+  message: string;
+  imageUrl?: string;
+  dateAdded: Date;
+}

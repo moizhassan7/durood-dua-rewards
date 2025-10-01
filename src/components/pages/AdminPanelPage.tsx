@@ -1,8 +1,7 @@
 // components/pages/AdminPanelPage.tsx
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronDown, Users, CreditCard, Trophy, Download, Shield, Settings, Loader, LogOut, BookOpen, BookText } from 'lucide-react';
-import { formatNumber } from '../utils/formatters';
+import { ChevronDown, Users, CreditCard, Trophy, Download, Shield, Settings, Loader, LogOut, BookOpen, BookText, Volume2 } from 'lucide-react'; // Added Volume2
 import { UserData } from '../../types';
 import TopNav from '../TopNav';
 import BottomNav from '../BottomNav';
@@ -205,6 +204,30 @@ const AdminPanelPage: React.FC<AdminPanelPageProps> = ({ user, setCurrentPage, h
               >
                 <ChevronDown className="transform rotate-180 mr-2" size={16} />
                 آیت شامل کریں
+              </button>
+
+              
+            </motion.div>
+
+            <motion.div
+              whileHover={{ y: -2 }}
+              className="bg-white rounded-2xl p-5 shadow-sm border border-orange-100"
+            >
+              <div className="flex items-center mb-3">
+                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mr-3">
+                  <Volume2 size={20} className="text-orange-600" />
+                </div>
+                <h2 className="font-bold text-gray-900" dir="rtl">فوری اعلان</h2>
+              </div>
+              <p className="text-gray-600 text-sm mb-4" dir="rtl">
+                صارفین کو اہم پیغامات یا اپ ڈیٹس تصویری شکل میں دکھائیں۔
+              </p>
+              <button
+                onClick={() => setCurrentPage('announcement-admin')}
+                className="w-full bg-orange-50 text-orange-600 py-2 rounded-lg font-medium flex items-center justify-center"
+              >
+                <ChevronDown className="transform rotate-180 mr-2" size={16} />
+                اعلان شامل کریں
               </button>
             </motion.div>
           </div>

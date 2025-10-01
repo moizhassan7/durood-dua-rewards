@@ -1,9 +1,10 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
+import { AnimatePresence } from 'framer-motion';
 import { auth, db } from './firebaseConfig';
 import { UserData } from './types';
-import { Loader } from 'lucide-react'; // Import for the loading icon
+import { Loader } from 'lucide-react'; 
 
 // --- Code Splitting (Lazy Loading) ---
 const LoginPage = lazy(() => import('./components/pages/LoginPage'));
@@ -28,6 +29,9 @@ const RulesRegulationsPage = lazy(() => import('./components/pages/RulesRegulati
 const FavoritesPage = lazy(() => import('./components/pages/FavoritesPage'));
 const BlockMessage = lazy(() => import('./components/BlockMessage'));
 
+import AnnouncementModal from './components/pages/AnnouncementModal'; // New Import
+import AnnouncementPage from './components/pages/AnnouncementPage'; // New Import
+import { AnnouncementData } from './types';
 
 // Custom Loader Component (In a real app, you'd import a dedicated file like AppLoader)
 const CustomPageSpinner: React.FC = () => (
@@ -46,6 +50,9 @@ export default function App() {
     const [rings, setRings] = useState<{ id: number }[]>([]);
     const [loadingUser, setLoadingUser] = useState(true);
     const [showBlockMessage, setShowBlockMessage] = useState(false);
+    const [activeAnnouncement, setActiveAnnouncement] = useState<AnnouncementData | null>(null);
+    const [announcementDismissed, setAnnouncementDismissed] = useState(false);
+  
 
     const UNBLOCK_EMAIL = 'contact@dalitask.com';
     // ... (initialUserData definition remains the same) ...
@@ -140,6 +147,18 @@ export default function App() {
         });
         return () => unsubscribeAuth();
     }, []);
+
+    useEffect(() => {
+        const fetchAnnouncement = async () => {
+          // Lazy load the announcement data only after user state is stable
+          const { fetchActiveAnnouncement } = await import('./services/firestore');
+          const announcementData = await fetchActiveAnnouncement();
+          setActiveAnnouncement(announcementData);
+        };
+        if (user) {
+            fetchAnnouncement();
+        }
+      }, [user]);
 
     const handleLoginSuccess = async (firebaseUser: any) => {
         const userDocRef = doc(db, 'users', firebaseUser.uid);
@@ -264,15 +283,30 @@ export default function App() {
                     return <SystemSettingsPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
                 }
                 return <CounterPage {...{ user, setCurrentPage, setUser: handleLogout, sessionCount, onPress: handlePress, isCooldown, rings }} />;
-            
+            case 'announcement-admin':
+                if (user.isAdmin) {
+                    return <AnnouncementPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
+                }
+                return <CounterPage {...{ user, setCurrentPage, setUser: handleLogout, sessionCount, onPress: handlePress, isCooldown, rings }} />;
             default: // 'counter'
                 return <CounterPage {...{ user, setCurrentPage, setUser: handleLogout, sessionCount, onPress: handlePress, isCooldown, rings }} />;
         }
     };
 
     return (
-        <Suspense fallback={<CustomPageSpinner />}>
-            {renderContent()}
-        </Suspense>
+        <>
+            <AnimatePresence>
+                {/* Show Announcement Modal only if active, not dismissed, and user is logged in */}
+                {user && activeAnnouncement && !announcementDismissed && (
+                    <AnnouncementModal 
+                        announcement={activeAnnouncement}
+                        onClose={() => setAnnouncementDismissed(true)}
+                    />
+                )}
+            </AnimatePresence>
+            <Suspense fallback={<CustomPageSpinner />}>
+                {renderContent()}
+            </Suspense>
+        </>
     );
 }

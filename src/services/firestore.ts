@@ -1,7 +1,6 @@
 import { collection, query, orderBy, limit, getDocs, doc, addDoc, where, getDoc, updateDoc, increment, writeBatch, runTransaction, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-// Assuming UserData, PayoutRequest, PayoutDetails, HadithData, VerseData are in '../types'
-import { UserData, PayoutRequest, PayoutDetails, HadithData, VerseData, FavoriteItem } from '../types'; // Added FavoriteItem
+import { UserData, PayoutRequest, PayoutDetails, HadithData, VerseData, FavoriteItem, AnnouncementData } from '../types'; // Updated import
 import { supabase } from '../supabaseClient';
 import { PAYOUT_THRESHOLD } from '../constants';
 
@@ -495,4 +494,54 @@ export interface FavoriteItem {
   type: 'hadith' | 'verse';
   item: HadithData | VerseData;
   dateAdded: Date;
+}
+
+/**
+ * Saves a new announcement, uploading an image to Supabase if provided.
+ * @param title The announcement title.
+ * @param message The announcement body text.
+ * @param imageFile The optional image file to upload.
+ */
+export async function saveAnnouncement(title: string, message: string, imageFile: File | null): Promise<void> {
+  let imageUrl: string | undefined;
+
+  if (imageFile) {
+    const fileName = `announcements/${Date.now()}_${imageFile.name}`;
+    const { data, error } = await supabase.storage.from('payment-proofs').upload(fileName, imageFile);
+
+    if (error) {
+      throw error;
+    }
+    const { data: publicUrlData } = supabase.storage.from('payment-proofs').getPublicUrl(fileName);
+    imageUrl = publicUrlData.publicUrl;
+  }
+
+  const announcementDocRef = doc(db, 'announcements', 'current');
+  await setDoc(announcementDocRef, {
+    title,
+    message,
+    imageUrl: imageUrl || null,
+    dateAdded: new Date(),
+  });
+}
+
+/**
+ * Fetches the current active announcement.
+ * @returns The active AnnouncementData object or null.
+ */
+export async function fetchActiveAnnouncement(): Promise<AnnouncementData | null> {
+  const docRef = doc(db, 'announcements', 'current');
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return { id: docSnap.id, ...docSnap.data() } as AnnouncementData;
+  }
+  return null;
+}
+
+/**
+ * Removes the current active announcement.
+ */
+export async function removeAnnouncement(): Promise<void> {
+  const docRef = doc(db, 'announcements', 'current');
+  await deleteDoc(docRef);
 }
