@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronLeft, User, Search, Loader, ShieldOff, Shield, CheckCircle, XCircle } from 'lucide-react';
+import { ChevronLeft, User, Search, Loader, ShieldOff, Shield, CheckCircle, XCircle, MoreVertical } from 'lucide-react';
 import { formatNumber } from '../utils/formatters';
 import { getAllUsers, toggleBlockUser } from '../../services/firestore';
 import { UserData } from '../../types';
@@ -102,6 +102,7 @@ const UserManagementPage: React.FC<UserManagementPageProps> = ({ user, setCurren
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [updatingUser, setUpdatingUser] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null); // <-- Add this state
 
   // NEW STATES for dialogs
   const [confirmation, setConfirmation] = useState<ConfirmationState>({
@@ -222,38 +223,58 @@ const UserManagementPage: React.FC<UserManagementPageProps> = ({ user, setCurren
             {filteredUsers.length > 0 ? (
               <ul className="divide-y divide-gray-100">
                 {filteredUsers.map((u) => (
-                  <li key={u.id} className="p-4 flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
+                  <li key={u.id} className="p-4 flex items-center justify-between relative">
+                    {/* 3-dot menu icon */}
+                    <button
+                      className="mr-2 sm:mr-0 p-2 rounded-full hover:bg-gray-100 focus:outline-none"
+                      onClick={() => setMenuOpen(menuOpen === u.id ? null : u.id)}
+                      aria-label="مزید اختیارات"
+                    >
+                      <MoreVertical size={20} />
+                    </button>
+                    {/* Dropdown menu */}
+                    {menuOpen === u.id && (
+                      <div className="absolute right-10 top-4 z-10 bg-white border rounded-lg shadow-lg w-36 text-right" dir="rtl">
+                        <button
+                          className={`w-full px-4 py-2 text-sm flex items-center gap-2 hover:bg-gray-100
+                            ${u.isBlocked ? 'text-green-600' : 'text-red-600'}`}
+                          onClick={() => {
+                            setMenuOpen(null);
+                            handleBlockClick(u);
+                          }}
+                        >
+                          {u.isBlocked ? <ShieldOff size={16} /> : <Shield size={16} />}
+                          {u.isBlocked ? 'اَن بلاک کریں' : 'بلاک کریں'}
+                        </button>
+                      </div>
+                    )}
+
+                    <div className="flex items-center space-x-4 flex-1 min-w-0">
                       <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
                         <User size={20} className="text-gray-500" />
                       </div>
-                      <div dir="rtl">
-                        <h3 className="font-bold text-gray-900">{u.name}</h3>
-                        <p className="text-sm text-gray-500">{u.email}</p>
+                      <div dir="rtl" className="min-w-0">
+                        <h3 className="font-bold text-gray-900 truncate">{u.name}</h3>
+                        <p className="text-sm text-gray-500 truncate">{u.email}</p>
                       </div>
                     </div>
-                    <div dir="rtl" className="text-right flex items-center space-x-2">
-                      <div className="text-sm font-medium text-green-600">
+                    <div dir="rtl" className="text-right flex items-center space-x-2 space-x-reverse sm:space-x-3 sm:space-x-reverse min-w-0">
+                      <div className="text-xs font-medium text-green-600 truncate max-w-[60px] sm:max-w-[90px]">
                         {formatNumber(u.totalCount)} دُرود
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-gray-500 truncate max-w-[40px] sm:max-w-[60px]">
                         {u.streak} دن
                       </div>
-                      <button
-                        // UPDATED: Calls handleBlockClick to show confirmation dialog
-                        onClick={() => handleBlockClick(u)} 
-                        disabled={updatingUser === u.id}
-                        className={`text-xs px-3 py-1 rounded-full font-semibold transition-colors flex items-center justify-center min-w-[70px] ${u.isBlocked ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-green-100 text-green-600 hover:bg-green-200'}`}
-                        title={u.isBlocked ? 'صارف کو اَن بلاک کریں' : 'صارف کو بلاک کریں'}
-                      >
+                      <span className={`inline-block text-[11px] sm:text-xs px-2 py-1 rounded-full font-semibold min-w-[48px] sm:min-w-[70px]
+                        ${u.isBlocked ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
                         {updatingUser === u.id ? (
-                          <Loader size={16} className="animate-spin" />
+                          <Loader size={14} className="animate-spin" />
                         ) : u.isBlocked ? (
                           'بلاک شدہ'
                         ) : (
                           'فعال'
                         )}
-                      </button>
+                      </span>
                     </div>
                   </li>
                 ))}

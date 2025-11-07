@@ -203,43 +203,49 @@ const JuzViewer: React.FC<JuzViewerProps> = ({
         </div>
       </div>
 
-      {/* PDF Viewer */}
+      {/* PDF Viewer - fixed, no scroll, responsive */}
       <div className="flex-1 flex flex-col">
-        <div className="flex-1 bg-white mx-2 my-2 rounded-lg shadow-sm overflow-hidden">
+        <div className="flex-1 bg-white mx-2 my-2 rounded-lg shadow-sm overflow-auto">
           <iframe
             src={getCurrentPageUrl()}
-            className="w-full h-full border-0 min-h-[70vh]"
+            className="w-full h-full border-0 min-h-[60vh]"
             title={`${title} - Page ${currentPage}`}
             onError={() => setError('PDF لوڈ نہیں ہو سکا')}
-            style={{ 
-              minHeight: '70vh',
-              maxHeight: '80vh',
-              aspectRatio: '3/4' // Portrait ratio for mobile
+            style={{
+              minHeight: '60vh',
+              width: '100%',
+              border: 0,
+              display: 'block',
+              background: '#fff',
+              borderRadius: '0.75rem',
+              boxShadow: '0 1px 4px rgba(0,0,0,0.04)'
             }}
+            scrolling="auto"
+            allowFullScreen
           />
         </div>
 
-        {/* Navigation Controls */}
-        <div className="bg-white border-t border-gray-200 px-2 py-3">
-          <div className="max-w-md mx-auto flex items-center justify-between">
+        {/* Navigation Controls - sticky for mobile, larger tap targets */}
+        <div className="bg-white border-t border-gray-200 px-2 py-3 sticky bottom-0 z-20">
+          <div className="max-w-md mx-auto flex items-center justify-between gap-2">
             <motion.button
               onClick={goToPreviousPage}
               disabled={currentPage === 1}
-              className={`flex items-center px-3 py-2 rounded-lg transition-colors text-sm ${
-                currentPage === 1
-                  ? 'text-gray-400 cursor-not-allowed'
-                  : 'text-green-600 hover:bg-green-50 hover:text-green-800'
-              }`}
-              whileHover={currentPage !== 1 ? { scale: 1.05 } : {}}
-              whileTap={currentPage !== 1 ? { scale: 0.95 } : {}}
+              className={`flex flex-col items-center justify-center px-4 py-3 rounded-xl transition-colors text-base font-bold w-1/3
+                ${currentPage === 1
+                  ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                  : 'text-green-700 bg-green-100 hover:bg-green-200 hover:text-green-900'}
+              `}
+              whileHover={currentPage !== 1 ? { scale: 1.07 } : {}}
+              whileTap={currentPage !== 1 ? { scale: 0.97 } : {}}
             >
-              <ChevronLeft size={18} className="ml-1" />
-              <span className="font-medium">پچھلا</span>
+              <ChevronLeft size={22} className="mb-1" />
+              <span>پچھلا</span>
             </motion.button>
 
             {/* Page Indicator */}
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600 font-medium" dir="rtl">
+            <div className="flex flex-col items-center w-1/3">
+              <span className="text-base text-gray-700 font-bold" dir="rtl">
                 {currentPage} / {totalPages}
               </span>
             </div>
@@ -247,16 +253,16 @@ const JuzViewer: React.FC<JuzViewerProps> = ({
             <motion.button
               onClick={goToNextPage}
               disabled={currentPage === totalPages}
-              className={`flex items-center px-3 py-2 rounded-lg transition-colors text-sm ${
-                currentPage === totalPages
-                  ? 'text-gray-400 cursor-not-allowed'
-                  : 'text-green-600 hover:bg-green-50 hover:text-green-800'
-              }`}
-              whileHover={currentPage !== totalPages ? { scale: 1.05 } : {}}
-              whileTap={currentPage !== totalPages ? { scale: 0.95 } : {}}
+              className={`flex flex-col items-center justify-center px-4 py-3 rounded-xl transition-colors text-base font-bold w-1/3
+                ${currentPage === totalPages
+                  ? 'text-gray-400 bg-gray-100 cursor-not-allowed'
+                  : 'text-green-700 bg-green-100 hover:bg-green-200 hover:text-green-900'}
+              `}
+              whileHover={currentPage !== totalPages ? { scale: 1.07 } : {}}
+              whileTap={currentPage !== totalPages ? { scale: 0.97 } : {}}
             >
-              <span className="font-medium">اگلا</span>
-              <ChevronRight size={18} className="mr-1" />
+              <ChevronRight size={22} className="mb-1" />
+              <span>اگلا</span>
             </motion.button>
           </div>
         </div>

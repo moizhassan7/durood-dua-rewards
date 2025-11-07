@@ -27,6 +27,7 @@ const HadithVersePage = lazy(() => import('./components/pages/HadithVersePage'))
 const QuranPage = lazy(() => import('./components/pages/QuranPage'));
 const RulesRegulationsPage = lazy(() => import('./components/pages/RulesRegulationsPage'));
 const FavoritesPage = lazy(() => import('./components/pages/FavoritesPage'));
+const MobileAppAdPage = lazy(() => import('./components/pages/MobileAppAdPage'));
 const BlockMessage = lazy(() => import('./components/BlockMessage'));
 
 import AnnouncementModal from './components/pages/AnnouncementModal'; // New Import
@@ -241,6 +242,8 @@ export default function App() {
                 return <QuranPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
             case 'rules-regulations':
                 return <RulesRegulationsPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
+            case 'mobile-app-ad':
+                return <MobileAppAdPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
             
             // --- Admin Pages ---
             case 'admin':

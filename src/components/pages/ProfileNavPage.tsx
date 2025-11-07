@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, CreditCard, Target, ChevronRight, LogOut, Mail, CheckCircle, XCircle, Loader, Shield } from 'lucide-react';
+import { User, CreditCard, Target, ChevronRight, LogOut, Mail, CheckCircle, XCircle, Loader, Shield, Download } from 'lucide-react';
 import { UserData, PayoutRequest } from '../../types';
 import TopNav from '../TopNav';
 import BottomNav from '../BottomNav';
@@ -241,6 +241,7 @@ const ProfileNavPage: React.FC<ProfileNavPageProps> = ({ user, setCurrentPage, h
                 { id: 'payout-details', label: 'بینک تفصیلات', icon: CreditCard },
                 { id: 'set-goal', label: 'روزانہ / ماہانہ مقصد', icon: Target },
                 { id: 'rules-regulations', label: 'قوانین اور پالیسیز', icon: Shield },
+                { id: 'mobile-app-ad', label: 'موبائل ایپ', icon: Download },
               ].map(item => (
                 <button
                   key={item.id}
