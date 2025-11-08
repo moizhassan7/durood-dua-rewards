@@ -3,7 +3,6 @@ import { Download } from 'lucide-react';
 import { UserData } from '../../types';
 import TopNav from '../TopNav';
 import BottomNav from '../BottomNav';
-
 interface MobileAppAdPageProps {
   user: UserData;
   setCurrentPage: (page: string) => void;
@@ -44,7 +43,7 @@ const MobileAppAdPage: React.FC<MobileAppAdPageProps> = ({ user, setCurrentPage,
         <div className="px-6 pb-4">
           <a
             href="/assets/app-release.apk"
-            download="daroord.apk"
+            download=""
             className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg text-lg font-semibold shadow hover:bg-green-700 transition-colors"
           >
             <Download size={22} />
