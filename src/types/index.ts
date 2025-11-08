@@ -13,6 +13,7 @@ export interface UserData {
   monthlyGoal: number; // New field
   isBlocked?: boolean; 
   isAdmin?: boolean;
+  awardedStreaks: { [key: number]: boolean }; // e.g., { 10: true, 20: false, ... }
 }
 export interface PayoutDetails {
   method: string;

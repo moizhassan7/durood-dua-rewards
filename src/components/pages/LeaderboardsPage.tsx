@@ -38,8 +38,10 @@ const LeaderboardsPage: React.FC<LeaderboardsPageProps> = ({ setCurrentPage, use
         } else if (activeTab === 'all-time') {
           leaders = await getAllTimeLeaders();
         }
+        
         // Filter out the admin user before setting the state
         const filteredLeaders = leaders.filter(leader => !leader.isAdmin);
+        
         if (activeTab === 'this-month') {
           setMonthlyLeaders(filteredLeaders);
         } else if (activeTab === 'today') {
@@ -57,6 +59,9 @@ const LeaderboardsPage: React.FC<LeaderboardsPageProps> = ({ setCurrentPage, use
     fetchLeaders();
   }, [activeTab]);
 
+  /**
+   * Renders the complete leaderboard list, showing all fetched users.
+   */
   const renderLeaderboard = (leaders: UserData[], showStreaks: boolean = false) => {
     if (loading) {
       return (
@@ -76,28 +81,34 @@ const LeaderboardsPage: React.FC<LeaderboardsPageProps> = ({ setCurrentPage, use
 
     return (
       <div className="space-y-3">
-        {leaders.slice(0, 3).map((leader, index) => (
+        {leaders.map((leader, index) => (
           <motion.div
             key={leader.id}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className={`bg-white rounded-xl p-4 shadow-sm flex items-center ${
+            // Use faster delay since we expect many items
+            transition={{ delay: index * 0.05 }} 
+            className={`bg-white rounded-xl p-4 shadow-sm flex items-center transition-all ${
+              // Highlight the top three ranks
               index === 0 ? 'border-2 border-amber-200' :
               index === 1 ? 'border border-amber-100' :
+              index === 2 ? 'border border-amber-100' :
               'border border-gray-100'
             }`}
           >
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white mr-3 ${
+            {/* Rank Badge */}
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-white mr-3 shrink-0 ${
               index === 0 ? 'bg-amber-500' :
               index === 1 ? 'bg-gray-400' :
-              'bg-amber-300'
+              index === 2 ? 'bg-amber-300' :
+              'bg-gray-300 text-gray-700'
             }`}>
               {index + 1}
             </div>
 
-            <div className="flex-1">
-              <h3 className="font-bold text-gray-900" dir="rtl">{leader.name}</h3>
+            {/* User Name and Counts */}
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-gray-900 truncate" dir="rtl">{leader.name}</h3>
               <p className="text-sm text-gray-500" dir="rtl">
                 {activeTab === 'today' && `${formatNumber(leader.todayCount)} آج کے دُرود`}
                 {activeTab === 'this-month' && `${formatNumber(leader.monthCount)} ماہانہ پوائنٹس`}
@@ -105,38 +116,25 @@ const LeaderboardsPage: React.FC<LeaderboardsPageProps> = ({ setCurrentPage, use
               </p>
             </div>
 
-            <div className="text-right">
-              {activeTab === 'this-month' && (
-                <>
-                  <div className="text-lg font-bold" dir="rtl">{prizes[index]?.prize || ''}</div>
+            {/* Prizes / Streaks */}
+            <div className="text-right ml-4 shrink-0">
+              {/* Monthly Prize Display (Only for top 3 of the month) */}
+              {activeTab === 'this-month' && index < 3 && (
+                <div className="text-right">
+                  <div className="text-lg font-bold text-amber-600" dir="rtl">{prizes[index]?.prize || ''}</div>
                   <div className="text-2xl" aria-hidden="true">{prizes[index]?.icon || ''}</div>
-                </>
+                </div>
+              )}
+              
+              {/* Streak Display (For Monthly and All-Time) */}
+              {showStreaks && activeTab !== 'today' && (
+                <div className="text-sm text-gray-600 font-medium" dir="rtl">
+                    {formatNumber(leader.streak)} دن
+                </div>
               )}
             </div>
           </motion.div>
         ))}
-
-        {leaders.length > 3 && (
-          <div className="mt-4">
-            <h3 className="font-bold text-gray-900 mb-2" dir="rtl">باقی فاتحین</h3>
-            {leaders.slice(3).map((leader, index) => (
-              <div key={leader.id} className="flex items-center py-2 border-b border-gray-100 last:border-0">
-                <div className="w-6 text-gray-400 mr-3">{index + 4}</div>
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-900" dir="rtl">{leader.name}</h4>
-                  <p className="text-sm text-gray-500" dir="rtl">
-                    {activeTab === 'today' && `${formatNumber(leader.todayCount)} آج کے دُرود`}
-                    {activeTab === 'this-month' && `${formatNumber(leader.monthCount)} ماہانہ پوائنٹس`}
-                    {activeTab === 'all-time' && `${formatNumber(leader.totalCount)} کل پوائنٹس`}
-                  </p>
-                </div>
-                {showStreaks && (
-                  <div className="text-gray-500 text-sm" dir="rtl">{formatNumber(leader.streak)} دن</div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
       </div>
     );
   };
@@ -151,6 +149,7 @@ const LeaderboardsPage: React.FC<LeaderboardsPageProps> = ({ setCurrentPage, use
       />
       <div className="flex-grow pt-16 pb-24 px-4">
         <div className="max-w-md mx-auto">
+          {/* Tab Navigation */}
           <div className="flex border-b border-gray-200 mb-6">
             {[
               { id: 'this-month', title: 'ماہانہ فاتحین' },
@@ -172,6 +171,7 @@ const LeaderboardsPage: React.FC<LeaderboardsPageProps> = ({ setCurrentPage, use
             ))}
           </div>
 
+          {/* Leaderboard Content */}
           <div className="space-y-6">
             {activeTab === 'this-month' && renderLeaderboard(monthlyLeaders, true)}
             {activeTab === 'today' && renderLeaderboard(todayLeaders, false)}

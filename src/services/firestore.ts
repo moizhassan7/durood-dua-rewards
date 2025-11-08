@@ -112,7 +112,7 @@ export async function acceptPayout(requestId: string, file: File, userId: string
 
 export async function getMonthlyLeaders(): Promise<UserData[]> {
   const usersRef = collection(db, 'users');
-  const q = query(usersRef, orderBy('monthCount', 'desc'), limit(5));
+  const q = query(usersRef, orderBy('monthCount', 'desc'));
   const querySnapshot = await getDocs(q);
   const leaders: UserData[] = [];
   querySnapshot.forEach((doc) => {
@@ -127,7 +127,7 @@ export async function getMonthlyLeaders(): Promise<UserData[]> {
  */
 export async function getTodayLeaders(): Promise<UserData[]> {
   const usersRef = collection(db, 'users');
-  const q = query(usersRef, orderBy('todayCount', 'desc'), limit(5));
+  const q = query(usersRef, orderBy('todayCount', 'desc'));
   const querySnapshot = await getDocs(q);
   const leaders: UserData[] = [];
   querySnapshot.forEach((doc) => {
@@ -142,7 +142,7 @@ export async function getTodayLeaders(): Promise<UserData[]> {
  */
 export async function getAllTimeLeaders(): Promise<UserData[]> {
   const usersRef = collection(db, 'users');
-  const q = query(usersRef, orderBy('totalCount', 'desc'), limit(5));
+  const q = query(usersRef, orderBy('totalCount', 'desc'));
   const querySnapshot = await getDocs(q);
   const leaders: UserData[] = [];
   querySnapshot.forEach((doc) => {
@@ -311,6 +311,8 @@ export async function resetMonthlyCountsAndAnnounce(): Promise<void> {
   querySnapshot.forEach((userDoc) => {
     const userDocRef = doc(db, 'users', userDoc.id);
     batch.update(userDocRef, {
+      totalCount: 0,
+      todayCount: 0,
       monthCount: 0,
       lastMonthResetDate: thisMonth
     });
@@ -544,4 +546,62 @@ export async function fetchActiveAnnouncement(): Promise<AnnouncementData | null
 export async function removeAnnouncement(): Promise<void> {
   const docRef = doc(db, 'announcements', 'current');
   await deleteDoc(docRef);
+}
+
+// File: services/firestore.ts (Add this new function)
+// NOTE: Make sure to import the date utilities:
+import { isToday, isYesterday, calculateNewStreak } from '../utils/dateUtils'; 
+
+export async function incrementUserCount(userId: string): Promise<void> {
+    const userDocRef = doc(db, 'users', userId);
+    const today = new Date();
+    const todayDateString = today.toISOString().slice(0, 10); // YYYY-MM-DD
+
+    await runTransaction(db, async (transaction) => {
+        const userDoc = await transaction.get(userDocRef);
+        if (!userDoc.exists()) {
+            throw new Error("User document does not exist!");
+        }
+        
+        const userData = userDoc.data() as UserData;
+        let pointsToAdd = 1; // Base point for the click
+        let streakBonus = 0;
+        let updates: any = {};
+        
+        const currentLastLoginDate = userData.lastLoginDate || '';
+        let newStreak = userData.streak;
+
+        // --- 1. Daily Reset and Streak Check (Happens ONLY on the first count of the day) ---
+        if (!currentLastLoginDate || !isToday(currentLastLoginDate)) {
+            // Recalculate streak and reset todayCount
+            newStreak = calculateNewStreak(currentLastLoginDate, userData.streak);
+            updates.streak = newStreak;
+            updates.lastLoginDate = todayDateString;
+            updates.todayCount = 1; // Start today's count at 1 (for the current click)
+
+            // --- 2. Streak Bonus Check ---
+            const milestones = [10, 20, 30, 40, 50];
+            // Ensure awardedStreaks is initialized if missing
+            const awardedStreaks = userData.awardedStreaks || {};
+
+            if (milestones.includes(newStreak) && !awardedStreaks[newStreak]) {
+                streakBonus = newStreak * 10;
+                pointsToAdd += streakBonus;
+                
+                awardedStreaks[newStreak] = true;
+                updates.awardedStreaks = awardedStreaks;
+                console.log(`User ${userId} earned a ${streakBonus} point bonus.`);
+            }
+        } else {
+            // User already counted today, only increment todayCount
+            updates.todayCount = increment(1);
+        }
+        
+        // --- 3. Update Counts and Apply Bonus ---
+        // totalCount and monthCount get the base click + the bonus (if any)
+        updates.totalCount = increment(pointsToAdd);
+        updates.monthCount = increment(pointsToAdd);
+
+        transaction.update(userDocRef, updates);
+    });
 }

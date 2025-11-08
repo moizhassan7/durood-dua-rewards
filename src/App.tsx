@@ -5,6 +5,7 @@ import { AnimatePresence } from 'framer-motion';
 import { auth, db } from './firebaseConfig';
 import { UserData } from './types';
 import { Loader } from 'lucide-react'; 
+import { incrementUserCount } from './services/firestore';
 
 // --- Code Splitting (Lazy Loading) ---
 const LoginPage = lazy(() => import('./components/pages/LoginPage'));
@@ -184,8 +185,10 @@ export default function App() {
         await setDoc(userDocRef, newUserDoc);
     };
 
-    const handlePress = async () => {
+   const handlePress = async () => {
         if (isCooldown || !user || user.isBlocked) return;
+        
+        // 1. UI Effects (Immediate feedback)
         setSessionCount(prev => prev + 1);
         const newRing = { id: Date.now() };
         setRings(prev => [...prev, newRing]);
@@ -194,10 +197,16 @@ export default function App() {
         }, 1000);
         setIsCooldown(true);
         setTimeout(() => setIsCooldown(false), 1000);
-        const userDocRef = doc(db, 'users', user.id);
-        await updateDoc(userDocRef, {
-            totalCount: increment(1), todayCount: increment(1), monthCount: increment(1),
-        });
+
+        // 2. Database Update (Comprehensive logic handled by service)
+        try {
+            // Call the service function to handle counts, streak, and bonus logic atomically
+            await incrementUserCount(user.id);
+            // The onSnapshot listener in useEffect will automatically update the local 'user' state
+        } catch (error) {
+            console.error("Error updating user count and streak:", error);
+            // Handle error: perhaps revert sessionCount or show a notification
+        }
     };
 
     const handleLogout = async () => {
