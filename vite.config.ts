@@ -8,6 +8,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+    },
   },
   plugins: [
     react(),
@@ -18,5 +21,11 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+    targets: [
+        {
+          src: 'node_modules/pdfjs-dist/build/pdf.worker.min.js',
+          dest: 'pdfjs',
+        },
+      ],
   },
 }));
