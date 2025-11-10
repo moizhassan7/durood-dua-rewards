@@ -3,15 +3,17 @@ import { onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 import { AnimatePresence } from 'framer-motion';
 import { auth, db } from './firebaseConfig';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { UserData } from './types';
 import { Loader } from 'lucide-react'; 
-import { incrementUserCount } from './services/firestore';
+import { incrementUserCount, createReferralCodeForUser } from './services/firestore';
 
 // --- Code Splitting (Lazy Loading) ---
 const LoginPage = lazy(() => import('./components/pages/LoginPage'));
 const SignupPage = lazy(() => import('./components/pages/SignupPage'));
 const CounterPage = lazy(() => import('./components/pages/CounterPage'));
 const ProfileNavPage = lazy(() => import('./components/pages/ProfileNavPage'));
+const ReferralProgramPage = lazy(() => import('./components/pages/ReferralProgramPage'));
 const ProfileDetailsPage = lazy(() => import('./components/pages/ProfileDetailsPage'));
 const PayoutDetailsPage = lazy(() => import('./components/pages/PayoutDetailsPage'));
 const SetGoalPage = lazy(() => import('./components/pages/SetGoalPage'));
@@ -179,10 +181,23 @@ export default function App() {
     const handleSignupSuccess = async (firebaseUser: any, name: string) => {
         await updateProfile(firebaseUser, { displayName: name });
         const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const newUserDoc = {
-            name: name, email: firebaseUser.email, isBlocked: false, ...initialUserData,
-        };
-        await setDoc(userDocRef, newUserDoc);
+                const newUserDoc = {
+                        name: name, email: firebaseUser.email, isBlocked: false, ...initialUserData,
+                        createdAt: new Date(),
+                        referredBy: null,
+                        referralCode: null,
+                        referralCount: 0,
+                } as any;
+                await setDoc(userDocRef, newUserDoc);
+
+                // Create a unique referral code for the new user (so they can refer others)
+                try {
+                    await createReferralCodeForUser(firebaseUser.uid);
+                } catch (err) {
+                    console.error('Failed to create referral code for user:', err);
+                }
+
+                // REMOVED: All pending referral logic, local storage checks, and Cloud Function calls on signup.
     };
 
    const handlePress = async () => {
@@ -235,6 +250,8 @@ export default function App() {
         switch (basePage) {
             case 'profile':
                 return <ProfileNavPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
+            case 'referral-program':
+                return <ReferralProgramPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
             case 'profile-details':
                 return <ProfileDetailsPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
             case 'payout-details':

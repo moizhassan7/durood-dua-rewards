@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { UserPlus, Eye, EyeOff, Loader } from 'lucide-react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebaseConfig';
+import { useEffect } from 'react';
 
 interface SignupPageProps {
   handleSignupSuccess: (user: any, name: string) => void;
@@ -16,6 +17,24 @@ const SignupPage: React.FC<SignupPageProps> = ({ handleSignupSuccess, setCurrent
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingReferral, setPendingReferral] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      // Read referral param from URL
+      const params = new URLSearchParams(window.location.search);
+      const referral = params.get('referral');
+      if (referral) {
+        localStorage.setItem('pendingReferral', referral);
+        setPendingReferral(referral);
+      } else {
+        const stored = localStorage.getItem('pendingReferral');
+        if (stored) setPendingReferral(stored);
+      }
+    } catch (e) {
+      // ignore in non-browser env
+    }
+  }, []);
 
   const handleSignup = async () => {
     setLoading(true);
@@ -49,6 +68,15 @@ const SignupPage: React.FC<SignupPageProps> = ({ handleSignupSuccess, setCurrent
         </div>
         
         <div className="p-6">
+              {pendingReferral && (
+                <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded text-sm text-emerald-800" dir="rtl">
+                  ریفرل کوڈ ملا: <strong className="ml-2">{pendingReferral}</strong>
+                  <button
+                    onClick={() => { localStorage.removeItem('pendingReferral'); setPendingReferral(null); }}
+                    className="mr-4 text-xs text-amber-600 hover:underline"
+                  >حذف کریں</button>
+                </div>
+              )}
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1" dir="rtl">

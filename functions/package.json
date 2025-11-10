@@ -1,0 +1,20 @@
+{
+  "name": "durood-dua-rewards-functions",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": "18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "deploy": "firebase deploy --only functions",
+    "serve": "firebase emulators:start --only functions"
+  },
+  "dependencies": {
+    "firebase-admin": "^11.10.1",
+    "firebase-functions": "^3.22.0"
+  },
+  "devDependencies": {
+    "typescript": "^4.9.5"
+  }
+}

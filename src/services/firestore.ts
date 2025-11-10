@@ -3,22 +3,30 @@ import { db } from '../firebaseConfig';
 import { UserData, PayoutRequest, PayoutDetails, HadithData, VerseData, FavoriteItem, AnnouncementData } from '../types'; // Updated import
 import { supabase } from '../supabaseClient';
 import { PAYOUT_THRESHOLD } from '../constants';
+import { isToday, isYesterday, calculateNewStreak } from '../utils/dateUtils'; 
 
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+// Initialize Firebase Functions and Firestore
+import { app } from '../firebaseConfig';
+
+// ... firebase initialization code ...
+
+const functions = getFunctions(app); // Get your initialized Firebase app
+const db = getFirestore(app);
+
+if (window.location.hostname === "localhost") {
+  // Point the functions instance to the local emulator running on port 5001
+  connectFunctionsEmulator(functions, "localhost", 5001); 
+  // Optional: Connect to Firestore emulator as well
+  connectFirestoreEmulator(db, "localhost", 8080);
+}
 /**
  * Creates a new payout request document.
  * @param userId The ID of the user.
  * @param userName The name of the user.
  * @param pointsToDeduct The number of points to deduct.
  */
-// export async function requestPayout(userId: string, userName: string, pointsToDeduct: number): Promise<void> {
-//   await addDoc(collection(db, 'payoutRequests'), {
-//     userId,
-//     userName,
-//     pointsAtRequest: pointsToDeduct, // Use the dynamic amount
-//     status: 'pending',
-//     requestDate: new Date(),
-//   });
-// }
 export async function requestPayout(userId: string, userName: string, pointsToDeduct: number): Promise<void> {
   await addDoc(collection(db, 'payoutRequests'), {
     userId,
@@ -29,37 +37,12 @@ export async function requestPayout(userId: string, userName: string, pointsToDe
   });
 }
 /**
- * 
- * Accepts a payout request, uploads proof, and updates the user's points.
+ * * Accepts a payout request, uploads proof, and updates the user's points.
  * @param requestId The ID of the request to accept.
  * @param file The screenshot file to upload.
  * @param userId The ID of the user to update points for.
  * @param pointsToDeduct The number of points to deduct.
  */
-// export async function acceptPayout(requestId: string, file: File, userId: string, pointsToDeduct: number): Promise<void> {
-//   const fileName = `${requestId}_${Date.now()}`;
-//   const { data, error } = await supabase.storage.from('payment-proofs').upload(fileName, file);
-
-//   if (error) {
-//     throw error;
-//   }
-
-//   const { data: publicUrlData } = supabase.storage.from('payment-proofs').getPublicUrl(fileName);
-//   const paymentProofUrl = publicUrlData.publicUrl;
-
-//   const requestDocRef = doc(db, 'payoutRequests', requestId);
-//   await updateDoc(requestDocRef, {
-//     status: 'accepted',
-//     paymentProofUrl,
-//     payoutDate: new Date(),
-//   });
-
-//   const userDocRef = doc(db, 'users', userId);
-//   await updateDoc(userDocRef, {
-//     totalCount: increment(-pointsToDeduct), // Deduct the dynamic amount
-//     monthCount: increment(-pointsToDeduct), // Deduct from monthly count too
-//   });
-// }
 export async function acceptPayout(requestId: string, file: File, userId: string, pointsToDeduct: number): Promise<void> {
   const fileName = `${requestId}_${Date.now()}`;
   const { data, error } = await supabase.storage.from('payment-proofs').upload(fileName, file);
@@ -99,17 +82,6 @@ export async function acceptPayout(requestId: string, file: File, userId: string
  * Fetches the top users for the monthly leaderboard.
  * @returns An array of UserData objects.
  */
-// export async function getMonthlyLeaders(): Promise<UserData[]> {
-//   const usersRef = collection(db, 'users');
-//   const q = query(usersRef, orderBy('monthCount', 'desc'), limit(5));
-//   const querySnapshot = await getDocs(q);
-//   const leaders: UserData[] = [];
-//   querySnapshot.forEach((doc) => {
-//     leaders.push({ id: doc.id, ...doc.data() } as UserData);
-//   });
-//   return leaders;
-// }
-
 export async function getMonthlyLeaders(): Promise<UserData[]> {
   const usersRef = collection(db, 'users');
   const q = query(usersRef, orderBy('monthCount', 'desc'));
@@ -165,21 +137,6 @@ export async function getAllUsers(): Promise<UserData[]> {
   return allUsers;
 }
 
-/**
- * Creates a new payout request document.
- * @param userId The ID of the user.
- * @param userName The name of the user.
- * @param points The points the user is cashing in.
- */
-// export async function requestPayout(userId: string, userName: string, points: number): Promise<void> {
-//   await addDoc(collection(db, 'payoutRequests'), {
-//     userId,
-//     userName,
-//     pointsAtRequest: points,
-//     status: 'pending',
-//     requestDate: new Date(),
-//   });
-// }
 /**
  * Toggles the 'isBlocked' status of a user.
  * @param userId The ID of the user to block/unblock.
@@ -256,39 +213,6 @@ export async function rejectPayout(requestId: string, reason?: string): Promise<
   });
 }
 
-/**
- * Accepts a payout request, uploads proof, and updates the user's points.
- * @param requestId The ID of the request to accept.
- * @param file The screenshot file to upload.
- * @param userId The ID of the user to update points for.
- * @param pointsToDeduct The number of points to deduct.
- */
-// export async function acceptPayout(requestId: string, file: File, userId: string, pointsToDeduct: number): Promise<void> {
-//   // Use a unique file name to avoid conflicts
-//   const fileName = `${requestId}_${Date.now()}`;
-//   const { data, error } = await supabase.storage.from('payment-proofs').upload(fileName, file);
-
-//   if (error) {
-//     throw error;
-//   }
-
-//   // Get the public URL for the uploaded file
-//   const { data: publicUrlData } = supabase.storage.from('payment-proofs').getPublicUrl(fileName);
-//   const paymentProofUrl = publicUrlData.publicUrl;
-
-//   const requestDocRef = doc(db, 'payoutRequests', requestId);
-//   await updateDoc(requestDocRef, {
-//     status: 'accepted',
-//     paymentProofUrl,
-//     payoutDate: new Date(),
-//   });
-
-//   const userDocRef = doc(db, 'users', userId);
-//   await updateDoc(userDocRef, {
-//     totalCount: increment(-pointsToDeduct),
-//     monthCount: increment(-pointsToDeduct),
-//   });
-// }
 /**
  * Gets the count of pending payout requests.
  * @returns The number of pending requests.
@@ -498,6 +422,31 @@ export interface FavoriteItem {
   dateAdded: Date;
 }
 
+// ---------------- Referral Code Migration ----------------
+/**
+ * Generates a referral code for an existing user if they don't have one.
+ * Returns the existing code if user already has one, or creates and returns a new one.
+ */
+export async function ensureUserHasReferralCode(userId: string): Promise<string> {
+  const userDocRef = doc(db, 'users', userId);
+  const userDoc = await getDoc(userDocRef);
+  
+  if (!userDoc.exists()) {
+    throw new Error('User document does not exist');
+  }
+  
+  const userData = userDoc.data();
+  
+  // If user already has a referral code, return it
+  if (userData.referralCode) {
+    return userData.referralCode;
+  }
+  
+  // Otherwise, generate a new code
+  const code = await createReferralCodeForUser(userId);
+  return code;
+}
+
 /**
  * Saves a new announcement, uploading an image to Supabase if provided.
  * @param title The announcement title.
@@ -550,7 +499,6 @@ export async function removeAnnouncement(): Promise<void> {
 
 // File: services/firestore.ts (Add this new function)
 // NOTE: Make sure to import the date utilities:
-import { isToday, isYesterday, calculateNewStreak } from '../utils/dateUtils'; 
 
 export async function incrementUserCount(userId: string): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
@@ -605,3 +553,61 @@ export async function incrementUserCount(userId: string): Promise<void> {
         transaction.update(userDocRef, updates);
     });
 }
+
+// ---------------- Referral System Helpers ----------------
+/**
+ * Generate a secure, URL-friendly referral code.
+ * Uses crypto.getRandomValues for browser-safe randomness and a base62 alphabet.
+ */
+function generateReferralCode(length = 8) {
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  const array = new Uint8Array(length);
+  // Use Web Crypto API for secure randomness
+  if (typeof window !== 'undefined' && window.crypto && window.crypto.getRandomValues) {
+    window.crypto.getRandomValues(array);
+  } else {
+    // Fallback (shouldn't run in browser): Math.random
+    for (let i = 0; i < length; i++) array[i] = Math.floor(Math.random() * 256);
+  }
+  return Array.from(array).map((n) => alphabet[n % alphabet.length]).join('');
+}
+
+/**
+ * Create and persist a unique referral code for a user.
+ * Ensures uniqueness by creating a doc in `referralCodes/{code}` mapping to userId using a transaction.
+ */
+export async function createReferralCodeForUser(userId: string): Promise<string> {
+  // Try a few times to avoid collision
+  for (let attempt = 0; attempt < 6; attempt++) {
+    const code = generateReferralCode(8);
+    const codeDocRef = doc(db, 'referralCodes', code);
+    try {
+      await runTransaction(db, async (transaction) => {
+        const snap = await transaction.get(codeDocRef);
+        if (snap.exists()) {
+          throw new Error('collision');
+        }
+  // store normalized lowercase to support case-insensitive lookup later
+  transaction.set(codeDocRef, { userId, createdAt: new Date(), normalized: code.toLowerCase() });
+        const userDocRef = doc(db, 'users', userId);
+        transaction.update(userDocRef, { referralCode: code });
+      });
+      return code;
+    } catch (err: any) {
+      if (err.message && err.message.indexOf('collision') >= 0) {
+        // collision, try again
+        continue;
+      }
+      // If transaction failed for other reasons, rethrow
+      throw err;
+    }
+  }
+  throw new Error('Failed to generate a unique referral code after multiple attempts');
+}
+
+/**
+ * Apply referral when a new user signs up using a referral code.
+ * NOTE: THIS FUNCTION IS DEPRECATED. The Cloud Function 'applyReferral' should be used instead
+ * for a more secure and atomic operation, both on signup and manual entry.
+ * REMOVED: The previous implementation of applyReferralOnSignup.
+ */

@@ -42,7 +42,7 @@ const MobileAppAdPage: React.FC<MobileAppAdPageProps> = ({ user, setCurrentPage,
         {/* Download Button */}
         <div className="px-6 pb-4">
           <a
-            href="/assets/app-release.apk"
+            href="https://dalitask.com/assets/app-release.apk"
             download=""
             className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg text-lg font-semibold shadow hover:bg-green-700 transition-colors"
           >

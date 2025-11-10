@@ -238,6 +238,7 @@ const ProfileNavPage: React.FC<ProfileNavPageProps> = ({ user, setCurrentPage, h
             <div className="space-y-4">
               {[
                 { id: 'profile-details', label: 'پروفائل', icon: User },
+                {id: 'referral-program', label: 'ریفریل پروگرام', icon: Mail },
                 { id: 'payout-details', label: 'بینک تفصیلات', icon: CreditCard },
                 { id: 'set-goal', label: 'روزانہ / ماہانہ مقصد', icon: Target },
                 { id: 'rules-regulations', label: 'قوانین اور پالیسیز', icon: Shield },

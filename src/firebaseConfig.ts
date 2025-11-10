@@ -1,7 +1,9 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, updateProfile, sendEmailVerification } from 'firebase/auth'; // New imports
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage'; // New import
+import { getAuth, updateProfile, sendEmailVerification } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
+
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBao-UisoHNCFcpWXDl0Na61yVKEb9P608",
@@ -14,7 +16,14 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-export const storage = getStorage(app); // New export
+export const storage = getStorage(app);
+export const functions = getFunctions(app);
+
+// Connect to emulators if running locally
+if (window.location.hostname === 'localhost') {
+  connectFirestoreEmulator(db, 'localhost', 8080);
+  connectFunctionsEmulator(functions, 'localhost', 5001);
+}
