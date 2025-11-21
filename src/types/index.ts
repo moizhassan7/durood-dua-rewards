@@ -11,7 +11,7 @@ export interface UserData {
   lastMonthResetDate: string; // New field
   dailyGoal: number; // New field
   monthlyGoal: number; // New field
-  isBlocked?: boolean; 
+  isBlocked?: boolean;
   isAdmin?: boolean;
   awardedStreaks: { [key: number]: boolean }; // e.g., { 10: true, 20: false, ... }
 }
@@ -99,4 +99,11 @@ export interface AnnouncementData {
   message: string;
   imageUrl?: string;
   dateAdded: Date;
+}
+
+export interface Benefit {
+  id: string;
+  title: string;
+  description: string;
+  iconUrl: string;
 }

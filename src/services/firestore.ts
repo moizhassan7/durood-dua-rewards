@@ -1,26 +1,11 @@
 import { collection, query, orderBy, limit, getDocs, doc, addDoc, where, getDoc, updateDoc, increment, writeBatch, runTransaction, setDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../firebaseConfig';
-import { UserData, PayoutRequest, PayoutDetails, HadithData, VerseData, FavoriteItem, AnnouncementData } from '../types'; // Updated import
+import { UserData, PayoutRequest, PayoutDetails, HadithData, VerseData, AnnouncementData, Benefit } from '../types'; // Updated import
 import { supabase } from '../supabaseClient';
 import { PAYOUT_THRESHOLD } from '../constants';
 import { isToday, isYesterday, calculateNewStreak } from '../utils/dateUtils'; 
 
-import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-// Initialize Firebase Functions and Firestore
-import { app } from '../firebaseConfig';
-
-// ... firebase initialization code ...
-
-const functions = getFunctions(app); // Get your initialized Firebase app
-const db = getFirestore(app);
-
-if (window.location.hostname === "localhost") {
-  // Point the functions instance to the local emulator running on port 5001
-  connectFunctionsEmulator(functions, "localhost", 5001); 
-  // Optional: Connect to Firestore emulator as well
-  connectFirestoreEmulator(db, "localhost", 8080);
-}
+// Use the shared Firestore instance from firebaseConfig
 /**
  * Creates a new payout request document.
  * @param userId The ID of the user.
@@ -497,61 +482,174 @@ export async function removeAnnouncement(): Promise<void> {
   await deleteDoc(docRef);
 }
 
+/**
+ * Fetches the benefits from Firestore.
+ * @returns An array of Benefit objects.
+ */
+export async function getBenefits(): Promise<Benefit[]> {
+  const docRef = doc(db, 'benefits', 'current');
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    return data.benefits || [];
+  }
+  return [];
+}
+
+/**
+ * Saves the benefits to Firestore.
+ * @param benefits The array of Benefit objects to save.
+ */
+export async function saveBenefits(benefits: Benefit[]): Promise<void> {
+  const docRef = doc(db, 'benefits', 'current');
+  await setDoc(docRef, { benefits, updatedAt: new Date() });
+}
+
 // File: services/firestore.ts (Add this new function)
 // NOTE: Make sure to import the date utilities:
 
+/**
+ * Sleep function for implementing delays in retry logic
+ */
+function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Increments the user's count with retry logic for quota exceeded errors
+ * Implements exponential backoff to handle Firebase rate limits
+ */
 export async function incrementUserCount(userId: string): Promise<void> {
     const userDocRef = doc(db, 'users', userId);
     const today = new Date();
     const todayDateString = today.toISOString().slice(0, 10); // YYYY-MM-DD
 
-    await runTransaction(db, async (transaction) => {
-        const userDoc = await transaction.get(userDocRef);
-        if (!userDoc.exists()) {
-            throw new Error("User document does not exist!");
-        }
-        
-        const userData = userDoc.data() as UserData;
-        let pointsToAdd = 1; // Base point for the click
-        let streakBonus = 0;
-        let updates: any = {};
-        
-        const currentLastLoginDate = userData.lastLoginDate || '';
-        let newStreak = userData.streak;
+    const maxRetries = 5;
+    let attempt = 0;
 
-        // --- 1. Daily Reset and Streak Check (Happens ONLY on the first count of the day) ---
-        if (!currentLastLoginDate || !isToday(currentLastLoginDate)) {
-            // Recalculate streak and reset todayCount
-            newStreak = calculateNewStreak(currentLastLoginDate, userData.streak);
-            updates.streak = newStreak;
-            updates.lastLoginDate = todayDateString;
-            updates.todayCount = 1; // Start today's count at 1 (for the current click)
+    while (attempt < maxRetries) {
+        try {
+            await runTransaction(db, async (transaction) => {
+                const userDoc = await transaction.get(userDocRef);
+                if (!userDoc.exists()) {
+                    throw new Error("User document does not exist!");
+                }
 
-            // --- 2. Streak Bonus Check ---
-            const milestones = [10, 20, 30, 40, 50];
-            // Ensure awardedStreaks is initialized if missing
-            const awardedStreaks = userData.awardedStreaks || {};
+                const userData = userDoc.data() as UserData;
+                let pointsToAdd = 1; // Base point for the click
+                let streakBonus = 0;
+                let updates: any = {};
 
-            if (milestones.includes(newStreak) && !awardedStreaks[newStreak]) {
-                streakBonus = newStreak * 10;
-                pointsToAdd += streakBonus;
-                
-                awardedStreaks[newStreak] = true;
-                updates.awardedStreaks = awardedStreaks;
-                console.log(`User ${userId} earned a ${streakBonus} point bonus.`);
+                const currentLastLoginDate = userData.lastLoginDate || '';
+                let newStreak = userData.streak;
+
+                // --- 1. Daily Reset and Streak Check (Happens ONLY on the first count of the day) ---
+                if (!currentLastLoginDate || !isToday(currentLastLoginDate)) {
+                    // Recalculate streak and reset todayCount
+                    newStreak = calculateNewStreak(currentLastLoginDate, userData.streak);
+                    updates.streak = newStreak;
+                    updates.lastLoginDate = todayDateString;
+                    updates.todayCount = 1; // Start today's count at 1 (for the current click)
+
+                    // --- 2. Streak Bonus Check ---
+                    const milestones = [10, 20, 30, 40, 50];
+                    // Ensure awardedStreaks is initialized if missing
+                    const awardedStreaks = userData.awardedStreaks || {};
+
+                    if (milestones.includes(newStreak) && !awardedStreaks[newStreak]) {
+                        streakBonus = newStreak * 10;
+                        pointsToAdd += streakBonus;
+
+                        awardedStreaks[newStreak] = true;
+                        updates.awardedStreaks = awardedStreaks;
+                        console.log(`User ${userId} earned a ${streakBonus} point bonus.`);
+                    }
+                } else {
+                    // User already counted today, only increment todayCount
+                    updates.todayCount = increment(1);
+                }
+
+                // --- 3. Update Counts and Apply Bonus ---
+                // totalCount and monthCount get the base click + the bonus (if any)
+                updates.totalCount = increment(pointsToAdd);
+                updates.monthCount = increment(pointsToAdd);
+
+                transaction.update(userDocRef, updates);
+            });
+
+            // Success - break out of retry loop
+            return;
+
+        } catch (error: any) {
+            console.error(`Error updating user count and streak (attempt ${attempt + 1}):`, error);
+
+            // Check if it's a quota exceeded error
+            if (error.code === 'resource-exhausted' || error.message?.includes('Quota exceeded') || error.message?.includes('Too Many Requests')) {
+                attempt++;
+
+                if (attempt < maxRetries) {
+                    // Exponential backoff: wait 2^attempt seconds (2s, 4s, 8s, 16s)
+                    const delayMs = Math.pow(2, attempt) * 1000;
+                    console.log(`Quota exceeded. Retrying in ${delayMs}ms... (attempt ${attempt}/${maxRetries})`);
+                    await sleep(delayMs);
+                    continue;
+                } else {
+                    // Max retries reached
+                    console.error('Max retries reached for quota exceeded error. Please try again later.');
+                    throw new Error('Service temporarily unavailable due to high traffic. Please try again in a few minutes.');
+                }
+            } else {
+                // Not a quota error, rethrow immediately
+                throw error;
             }
-        } else {
-            // User already counted today, only increment todayCount
-            updates.todayCount = increment(1);
         }
-        
-        // --- 3. Update Counts and Apply Bonus ---
-        // totalCount and monthCount get the base click + the bonus (if any)
-        updates.totalCount = increment(pointsToAdd);
-        updates.monthCount = increment(pointsToAdd);
+    }
+}
 
+export async function incrementUserCountBatch(userId: string, clicks: number): Promise<void> {
+  if (!clicks || clicks <= 0) return;
+  const userDocRef = doc(db, 'users', userId);
+  const today = new Date();
+  const todayDateString = today.toISOString().slice(0, 10);
+
+  await runTransaction(db, async (transaction) => {
+    const userDoc = await transaction.get(userDocRef);
+    if (!userDoc.exists()) {
+      throw new Error("User document does not exist!");
+    }
+    const userData = userDoc.data() as UserData;
+
+    let updates: any = {};
+    let newStreak = userData.streak;
+
+    const currentLastLoginDate = userData.lastLoginDate || '';
+    const isSameDay = currentLastLoginDate && isToday(currentLastLoginDate);
+
+    if (!isSameDay) {
+      newStreak = calculateNewStreak(currentLastLoginDate, userData.streak);
+      updates.streak = newStreak;
+      updates.lastLoginDate = todayDateString;
+      updates.todayCount = clicks;
+
+      const milestones = [10, 20, 30, 40, 50];
+      const awardedStreaks = userData.awardedStreaks || {};
+      if (milestones.includes(newStreak) && !awardedStreaks[newStreak]) {
+        const streakBonus = newStreak * 10;
+        awardedStreaks[newStreak] = true;
+        updates.awardedStreaks = awardedStreaks;
+        updates.totalCount = increment(clicks + streakBonus);
+        updates.monthCount = increment(clicks + streakBonus);
         transaction.update(userDocRef, updates);
-    });
+        return;
+      }
+    } else {
+      updates.todayCount = increment(clicks);
+    }
+
+    updates.totalCount = increment(clicks);
+    updates.monthCount = increment(clicks);
+    transaction.update(userDocRef, updates);
+  });
 }
 
 // ---------------- Referral System Helpers ----------------

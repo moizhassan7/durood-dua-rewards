@@ -1,4 +1,4 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useRef, useCallback } from 'react';
 import { onAuthStateChanged, updateProfile } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, increment, onSnapshot } from 'firebase/firestore';
 import { AnimatePresence } from 'framer-motion';
@@ -6,7 +6,7 @@ import { auth, db } from './firebaseConfig';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { UserData } from './types';
 import { Loader } from 'lucide-react'; 
-import { incrementUserCount, createReferralCodeForUser } from './services/firestore';
+import { incrementUserCountBatch, createReferralCodeForUser } from './services/firestore';
 
 // --- Code Splitting (Lazy Loading) ---
 const LoginPage = lazy(() => import('./components/pages/LoginPage'));
@@ -32,6 +32,7 @@ const RulesRegulationsPage = lazy(() => import('./components/pages/RulesRegulati
 const FavoritesPage = lazy(() => import('./components/pages/FavoritesPage'));
 const MobileAppAdPage = lazy(() => import('./components/pages/MobileAppAdPage'));
 const BlockMessage = lazy(() => import('./components/BlockMessage'));
+const IndexPage = lazy(() => import('./components/pages/IndexPage'));
 
 import AnnouncementModal from './components/pages/AnnouncementModal'; // New Import
 import AnnouncementPage from './components/pages/AnnouncementPage'; // New Import
@@ -48,7 +49,7 @@ const CustomPageSpinner: React.FC = () => (
 
 export default function App() {
     const [user, setUser] = useState<UserData | null>(null);
-    const [currentPage, setCurrentPage] = useState('signup');
+    const [currentPage, setCurrentPage] = useState('index');
     const [sessionCount, setSessionCount] = useState(0);
     const [isCooldown, setIsCooldown] = useState(false);
     const [rings, setRings] = useState<{ id: number }[]>([]);
@@ -56,6 +57,10 @@ export default function App() {
     const [showBlockMessage, setShowBlockMessage] = useState(false);
     const [activeAnnouncement, setActiveAnnouncement] = useState<AnnouncementData | null>(null);
     const [announcementDismissed, setAnnouncementDismissed] = useState(false);
+    const [pendingClicks, setPendingClicks] = useState(0);
+    const flushHandle = useRef<number | null>(null);
+    const pendingClicksRef = useRef(0);
+    const flushIntervalRef = useRef<number | null>(null);
   
 
     const UNBLOCK_EMAIL = 'contact@dalitask.com';
@@ -178,7 +183,7 @@ export default function App() {
         }
     };
 
-    const handleSignupSuccess = async (firebaseUser: any, name: string) => {
+    const handleSignupSuccess = async (firebaseUser: any, name: string, referral?: string | null) => {
         await updateProfile(firebaseUser, { displayName: name });
         const userDocRef = doc(db, 'users', firebaseUser.uid);
                 const newUserDoc = {
@@ -196,9 +201,53 @@ export default function App() {
                 } catch (err) {
                     console.error('Failed to create referral code for user:', err);
                 }
-
-                // REMOVED: All pending referral logic, local storage checks, and Cloud Function calls on signup.
+                // If a referral code was provided (either via URL/localStorage or manual input),
+                // call the backend Cloud Function to apply the referral atomically.
+                if (referral && referral.trim() !== '') {
+                    try {
+                        const functions = getFunctions();
+                        const applyReferralFn = httpsCallable(functions, 'applyReferral');
+                        console.log('Applying referral code for new user:', referral);
+                        const result = await applyReferralFn({ referralCode: referral.trim(), points: 100 });
+                        console.log('applyReferral result:', result.data);
+                        // Clear any stored pending referral
+                        try { localStorage.removeItem('pendingReferral'); } catch (e) { /* ignore */ }
+                    } catch (err: any) {
+                        // Handle known error cases returned by the callable function
+                        console.error('applyReferral failed:', err);
+                        // Optional: inspect err.code or err.message and act accordingly
+                    }
+                }
     };
+
+   const flushClicks = useCallback(async () => {
+        if (!user) return;
+        const n = pendingClicksRef.current;
+        if (n <= 0) return;
+        pendingClicksRef.current = 0;
+        setPendingClicks(0);
+        try {
+            await incrementUserCountBatch(user.id, n);
+        } catch (error) {
+            console.error("Error updating user count and streak:", error);
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (!user) return;
+        if (flushIntervalRef.current) {
+            clearInterval(flushIntervalRef.current);
+        }
+        flushIntervalRef.current = window.setInterval(() => {
+            flushClicks();
+        }, 12000);
+        return () => {
+            if (flushIntervalRef.current) {
+                clearInterval(flushIntervalRef.current);
+                flushIntervalRef.current = null;
+            }
+        };
+    }, [user, flushClicks]);
 
    const handlePress = async () => {
         if (isCooldown || !user || user.isBlocked) return;
@@ -213,15 +262,25 @@ export default function App() {
         setIsCooldown(true);
         setTimeout(() => setIsCooldown(false), 1000);
 
-        // 2. Database Update (Comprehensive logic handled by service)
-        try {
-            // Call the service function to handle counts, streak, and bonus logic atomically
-            await incrementUserCount(user.id);
-            // The onSnapshot listener in useEffect will automatically update the local 'user' state
-        } catch (error) {
-            console.error("Error updating user count and streak:", error);
-            // Handle error: perhaps revert sessionCount or show a notification
+        // Instant UI update for visible counters
+        setUser(prev => {
+            if (!prev) return prev as any;
+            return {
+                ...prev,
+                todayCount: (prev.todayCount || 0) + 1,
+                monthCount: (prev.monthCount || 0) + 1,
+                totalCount: (prev.totalCount || 0) + 1,
+            } as any;
+        });
+
+        pendingClicksRef.current += 1;
+        setPendingClicks(pendingClicksRef.current);
+        if (flushHandle.current) {
+            clearTimeout(flushHandle.current);
         }
+        flushHandle.current = window.setTimeout(() => {
+            flushClicks();
+        }, 2000);
     };
 
     const handleLogout = async () => {
@@ -240,9 +299,10 @@ export default function App() {
         }
 
         if (!user) {
-            return currentPage === 'login'
-                ? <LoginPage handleLoginSuccess={handleLoginSuccess} setCurrentPage={setCurrentPage} />
-                : <SignupPage handleSignupSuccess={handleSignupSuccess} setCurrentPage={setCurrentPage} />;
+            if (currentPage === 'login') return <LoginPage handleLoginSuccess={handleLoginSuccess} setCurrentPage={setCurrentPage} />;
+            if (currentPage === 'signup') return <SignupPage handleSignupSuccess={handleSignupSuccess} setCurrentPage={setCurrentPage} />;
+            // Default for unauthenticated users: show the public Index / landing page
+            return <IndexPage setCurrentPage={setCurrentPage} />;
         }
 
         const basePage = currentPage.split('?')[0];
@@ -317,6 +377,8 @@ export default function App() {
                     return <AnnouncementPage user={user} setCurrentPage={setCurrentPage} handleLogout={handleLogout} />;
                 }
                 return <CounterPage {...{ user, setCurrentPage, setUser: handleLogout, sessionCount, onPress: handlePress, isCooldown, rings }} />;
+            case 'index':
+                return <IndexPage setCurrentPage={setCurrentPage} />;
             default: // 'counter'
                 return <CounterPage {...{ user, setCurrentPage, setUser: handleLogout, sessionCount, onPress: handlePress, isCooldown, rings }} />;
         }

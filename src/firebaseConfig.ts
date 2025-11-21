@@ -6,13 +6,13 @@ import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyBao-UisoHNCFcpWXDl0Na61yVKEb9P608",
-  authDomain: "darood-app-84a5f.firebaseapp.com",
-  projectId: "darood-app-84a5f",
-  storageBucket: "darood-app-84a5f.firebasestorage.app",
-  messagingSenderId: "150574670250",
-  appId: "1:150574670250:web:354aa827674daa7dd5cbd3",
-  measurementId: "G-734V5H31DB"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
@@ -22,8 +22,14 @@ export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
 
-// Connect to emulators if running locally
-if (window.location.hostname === 'localhost') {
-  connectFirestoreEmulator(db, 'localhost', 8080);
-  connectFunctionsEmulator(functions, 'localhost', 5001);
+const useFirestoreEmulator = import.meta.env.VITE_USE_FIRESTORE_EMULATOR === 'true';
+const firestoreEmulatorPort = Number(import.meta.env.VITE_FIRESTORE_EMULATOR_PORT) || 8090;
+const useFunctionsEmulator = import.meta.env.VITE_USE_FUNCTIONS_EMULATOR === 'true';
+const functionsEmulatorPort = Number(import.meta.env.VITE_FUNCTIONS_EMULATOR_PORT) || 5001;
+
+if (window.location.hostname === 'localhost' && useFirestoreEmulator) {
+  connectFirestoreEmulator(db, 'localhost', firestoreEmulatorPort);
+}
+if (window.location.hostname === 'localhost' && useFunctionsEmulator) {
+  connectFunctionsEmulator(functions, 'localhost', functionsEmulatorPort);
 }

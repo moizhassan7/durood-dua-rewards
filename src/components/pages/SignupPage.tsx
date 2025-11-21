@@ -6,7 +6,8 @@ import { auth } from '../../firebaseConfig';
 import { useEffect } from 'react';
 
 interface SignupPageProps {
-  handleSignupSuccess: (user: any, name: string) => void;
+  // third optional argument is referral code the user entered or found in URL/localStorage
+  handleSignupSuccess: (user: any, name: string, referral?: string | null) => void;
   setCurrentPage: (page: string) => void;
 }
 
@@ -18,6 +19,7 @@ const SignupPage: React.FC<SignupPageProps> = ({ handleSignupSuccess, setCurrent
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pendingReferral, setPendingReferral] = useState<string | null>(null);
+  const [manualReferral, setManualReferral] = useState<string>('');
 
   useEffect(() => {
     try {
@@ -41,8 +43,10 @@ const SignupPage: React.FC<SignupPageProps> = ({ handleSignupSuccess, setCurrent
     setError(null);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Pass both the user and the name to the parent component
-      handleSignupSuccess(userCredential.user, name);
+      // Determine referral to send: manual input takes precedence over pendingReferral
+      const referralToSend = manualReferral && manualReferral.trim() !== '' ? manualReferral.trim() : pendingReferral;
+      // Pass user, name and optional referral to parent
+      handleSignupSuccess(userCredential.user, name, referralToSend);
     } catch (err: any) {
       console.error(err);
       if (err.code === 'auth/email-already-in-use') {
@@ -77,6 +81,19 @@ const SignupPage: React.FC<SignupPageProps> = ({ handleSignupSuccess, setCurrent
                   >حذف کریں</button>
                 </div>
               )}
+              {/* Manual referral input (optional). Manual input takes precedence over pendingReferral */}
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1" dir="rtl">ریفرل کوڈ (اختیاری)</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                  placeholder="اگر آپ کے پاس ریفرل کوڈ ہے تو یہاں درج کریں"
+                  value={manualReferral}
+                  onChange={(e) => setManualReferral(e.target.value)}
+                  dir="ltr"
+                />
+                <p className="text-xs text-gray-500 mt-1" dir="rtl">یہ کوڈ بطور حوالہ چیک کیا جائے گا — یہاں لکھیں اگر آپ نے لنک میں کوڈ نہیں پایا۔</p>
+              </div>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1" dir="rtl">
