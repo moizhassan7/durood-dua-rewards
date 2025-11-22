@@ -704,8 +704,74 @@ export async function createReferralCodeForUser(userId: string): Promise<string>
 }
 
 /**
- * Apply referral when a new user signs up using a referral code.
- * NOTE: THIS FUNCTION IS DEPRECATED. The Cloud Function 'applyReferral' should be used instead
- * for a more secure and atomic operation, both on signup and manual entry.
- * REMOVED: The previous implementation of applyReferralOnSignup.
+ * Applies a referral using a Firestore transaction on the client.
+ * Awards `points` to both new user and referrer, sets `referredBy`, and increments `referralCount`.
+ * Performs case-insensitive lookup on `referralCodes`.
  */
+export async function applyReferralClient(referralCode: string, newUserId: string, points: number = 200): Promise<{ applied: boolean; reason?: string }> {
+  const trimmed = referralCode.trim();
+  if (!trimmed) return { applied: false, reason: 'invalid_code' };
+
+  // Find referrer by code (case-insensitive)
+  let referrerId: string | null = null;
+  let actualCode = trimmed;
+
+  const directRef = doc(db, 'referralCodes', trimmed);
+  const directSnap = await getDoc(directRef);
+  if (directSnap.exists()) {
+    const data = directSnap.data() as { userId?: string };
+    referrerId = data.userId || null;
+  } else {
+    const normalized = trimmed.toLowerCase();
+    const q = query(collection(db, 'referralCodes'), where('normalized', '==', normalized), limit(1));
+    const qSnap = await getDocs(q);
+    if (!qSnap.empty) {
+      const found = qSnap.docs[0];
+      const data = found.data() as { userId?: string };
+      referrerId = data.userId || null;
+      actualCode = found.id;
+    }
+  }
+
+  if (!referrerId) return { applied: false, reason: 'not_found' };
+
+  // Run transaction to update both users atomically
+  await runTransaction(db, async (tx) => {
+    const newUserRef = doc(db, 'users', newUserId);
+    const referrerRef = doc(db, 'users', referrerId!);
+
+    const newUserSnap = await tx.get(newUserRef);
+    if (!newUserSnap.exists()) throw new Error('new_user_missing');
+    const newUserData = newUserSnap.data() as { referredBy?: string };
+
+    if (referrerId === newUserId) throw new Error('self_referral');
+    if (newUserData.referredBy) throw new Error('already_referred');
+
+    const referrerSnap = await tx.get(referrerRef);
+    if (!referrerSnap.exists()) throw new Error('referrer_missing');
+
+    tx.update(newUserRef, {
+      referredBy: referrerId,
+      referredAt: new Date(),
+      totalCount: increment(points),
+      monthCount: increment(points),
+    });
+
+    tx.update(referrerRef, {
+      totalCount: increment(points),
+      monthCount: increment(points),
+      referralCount: increment(1),
+    });
+
+    const eventRef = doc(collection(db, 'referrals'));
+    tx.set(eventRef, {
+      referralCode: actualCode,
+      referrerId,
+      referredId: newUserId,
+      pointsAwarded: points,
+      createdAt: new Date(),
+    });
+  });
+
+  return { applied: true };
+}

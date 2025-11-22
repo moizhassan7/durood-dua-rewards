@@ -2,11 +2,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { LogIn, UserPlus, Eye, EyeOff, Loader } from 'lucide-react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword, User } from 'firebase/auth';
 import { auth } from '../../firebaseConfig'; // Import auth from your config
 
 interface LoginPageProps {
-  handleLoginSuccess: (user: any) => void;
+  handleLoginSuccess: (user: User) => void;
   setCurrentPage: (page: string) => void;
 }
 
@@ -22,9 +22,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ handleLoginSuccess, setCurrentPag
     setError(null);
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      // Pass the user object to the parent component
       handleLoginSuccess(userCredential.user);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setError('غلط ای میل یا پاس ورڈ');
     } finally {

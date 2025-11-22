@@ -3,9 +3,8 @@ import { ChevronLeft, Users, Share2, Copy, CheckCircle } from 'lucide-react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebaseConfig';
 import { UserData } from '../../types';
-import { ensureUserHasReferralCode } from '../../services/firestore';
-// Removed: import { applyReferralOnSignup } from '../../services/firestore';
-import { getFunctions, httpsCallable } from 'firebase/functions'; // ADDED
+import { ensureUserHasReferralCode, applyReferralClient } from '../../services/firestore';
+// Removed Cloud Function usage
 import TopNav from '../TopNav';
 import BottomNav from '../BottomNav';
 
@@ -77,10 +76,11 @@ const ReferralProgramPage: React.FC<ReferralProgramPageProps> = ({ user, setCurr
 رجسٹر کرنے کے لیے لنک پر کلک کریں: ${shareLink}
 
 **میرا ریفرل کوڈ استعمال کریں:** ${referralCode}
-کوڈ کو ریفرل پروگرام پیج پر داخل کریں تاکہ آپ کو 100 پوائنٹس مفت ملیں۔`; 
+کوڈ کو ریفرل پروگرام پیج پر داخل کریں تاکہ آپ کو 200 پوائنٹس مفت ملیں۔`; 
     
-    if ((navigator as any).share) {
-      (navigator as any).share({ 
+    const nav = navigator as Navigator & { share?: (data: { title?: string; text?: string; url?: string }) => Promise<void> };
+    if (typeof nav.share === 'function') {
+      nav.share({ 
         title: 'درود و سلام حاصل کریں',
         text: shareText, 
         url: shareLink 
@@ -105,14 +105,9 @@ const ReferralProgramPage: React.FC<ReferralProgramPageProps> = ({ user, setCurr
         return;
       }
 
-      // --- Use the secure Cloud Function for application ---
-      const functions = getFunctions();
-      const applyReferralFn = httpsCallable(functions, 'applyReferral');
-      
-      const res = await applyReferralFn({ referralCode: enteredCode.trim(), points: 100 });
-      const dataAny: any = res?.data;
+      const data = await applyReferralClient(enteredCode.trim(), user.id, 200);
 
-      if (dataAny && dataAny.applied) {
+      if (data && data.applied) {
         setMessage('ریفرل کامیاب ہو گیا! آپ اور ریفرر کو پوائنٹس مل گئے۔');
         
         // Refresh displayed data
@@ -126,7 +121,7 @@ const ReferralProgramPage: React.FC<ReferralProgramPageProps> = ({ user, setCurr
         }
       } else {
         // Handle specific rejection reasons from the Cloud Function
-        const reason = dataAny?.reason;
+        const reason = data?.reason;
         let errorMsg = 'کوڈ لاگو نہیں ہوا — براہ کرم درست کوڈ چیک کریں یا پہلے ہی لاگو ہو چکا ہے۔';
         
         if (reason === 'self_referral') errorMsg = 'آپ اپنا کوڈ استعمال نہیں کرسکتے';
@@ -163,7 +158,7 @@ const ReferralProgramPage: React.FC<ReferralProgramPageProps> = ({ user, setCurr
                 <Users size={24} />
               </div>
               <p className="text-amber-100">
-                دوستوں کو مدعو کریں اور دونوں 100 پوائنٹس حاصل کریں
+                دوستوں کو مدعو کریں اور دونوں 200 پوائنٹس حاصل کریں
               </p>
             </div>
 
@@ -222,7 +217,7 @@ const ReferralProgramPage: React.FC<ReferralProgramPageProps> = ({ user, setCurr
                       </li>
                       <li className="flex items-start">
                         <span className="flex-shrink-0 w-6 h-6 flex items-center justify-center bg-amber-100 text-amber-700 rounded-full mr-2">3</span>
-                        <p className="text-gray-600">دونوں کو 100 پوائنٹس ملیں گے!</p>
+                        <p className="text-gray-600">دونوں کو 200 پوائنٹس ملیں گے!</p>
                       </li>
                     </ol>
                   </div>

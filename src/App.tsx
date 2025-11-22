@@ -1,12 +1,12 @@
 import React, { useState, useEffect, lazy, Suspense, useRef, useCallback } from 'react';
-import { onAuthStateChanged, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, updateProfile, User } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { AnimatePresence } from 'framer-motion';
 import { auth, db } from './firebaseConfig';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+// Referrals handled client-side
 import { UserData, AnnouncementData } from './types';
 import { Loader } from 'lucide-react'; 
-import { incrementUserCountBatch, createReferralCodeForUser, fetchActiveAnnouncement } from './services/firestore';
+import { incrementUserCountBatch, createReferralCodeForUser, fetchActiveAnnouncement, applyReferralClient } from './services/firestore';
 import BlockMessage from './components/BlockMessage';
 
 // --- Code Splitting (Lazy Loading) ---
@@ -283,7 +283,7 @@ export default function App() {
         }, 2000);
     };
 
-    const handleLoginSuccess = async (firebaseUser: any) => {
+    const handleLoginSuccess = async (firebaseUser: User) => {
         // Set session timestamp on login
         localStorage.setItem('loginTimestamp', Date.now().toString());
 
@@ -294,11 +294,21 @@ export default function App() {
             await auth.signOut();
             setShowBlockMessage(true);
         } else {
+            if (referral && referral.trim() !== '') {
+                try {
+                    const functions = getFunctions();
+                    const applyReferralFn = httpsCallable(functions, 'applyReferral');
+                    await applyReferralFn({ referralCode: referral.trim(), points: 200 });
+                    localStorage.removeItem('pendingReferral');
+                } catch (err) {
+                    console.error('Applying referral failed', err);
+                }
+            }
             setCurrentPage('counter');
         }
     };
 
-    const handleSignupSuccess = async (firebaseUser: any, name: string, referral?: string | null) => {
+    const handleSignupSuccess = async (firebaseUser: User, name: string, referral?: string | null) => {
         // Set session timestamp on signup
         localStorage.setItem('loginTimestamp', Date.now().toString());
 
@@ -327,9 +337,7 @@ export default function App() {
         // Apply Referral if exists
         if (referral && referral.trim() !== '') {
             try {
-                const functions = getFunctions();
-                const applyReferralFn = httpsCallable(functions, 'applyReferral');
-                await applyReferralFn({ referralCode: referral.trim(), points: 100 });
+                await applyReferralClient(referral.trim(), firebaseUser.uid, 200);
                 localStorage.removeItem('pendingReferral');
             } catch (err) {
                 console.error('Applying referral failed', err);

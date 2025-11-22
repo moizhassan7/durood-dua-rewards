@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { UserPlus, Eye, EyeOff, Loader } from 'lucide-react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, User } from 'firebase/auth';
 import { auth } from '../../firebaseConfig';
 import { useEffect } from 'react';
 
 interface SignupPageProps {
   // third optional argument is referral code the user entered or found in URL/localStorage
-  handleSignupSuccess: (user: any, name: string, referral?: string | null) => void;
+  handleSignupSuccess: (user: User, name: string, referral?: string | null) => void;
   setCurrentPage: (page: string) => void;
 }
 
@@ -47,9 +47,10 @@ const SignupPage: React.FC<SignupPageProps> = ({ handleSignupSuccess, setCurrent
       const referralToSend = manualReferral && manualReferral.trim() !== '' ? manualReferral.trim() : pendingReferral;
       // Pass user, name and optional referral to parent
       handleSignupSuccess(userCredential.user, name, referralToSend);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      if (err.code === 'auth/email-already-in-use') {
+      const code = typeof err === 'object' && err && 'code' in err ? (err as { code?: string }).code : undefined;
+      if (code === 'auth/email-already-in-use') {
         setError('اس ای میل کا اکاؤنٹ پہلے سے موجود ہے');
       } else {
         setError('اکاؤنٹ بنانے میں کوئی مسئلہ پیش آیا');
